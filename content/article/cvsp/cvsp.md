@@ -1,7 +1,8 @@
 ---
 title: "Concurrency VS Parallelism"
-date: 2018-01-31
+author: Arsh
 draft: true
+includeD3: true
 ---
 
 Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as **parallelism** and **concurrency**, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on whats the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.
@@ -34,9 +35,8 @@ And here's the output:
 ➔ python fib.py
 Time for synchronous fib(): 28.140856742858887 seconds
 ```
-code used to produce this output can be found here
 
-Executing the above for loop took **~30** seconds, with each call to the `fib()` function taking **y** seconds on average. Lets take this as the baseline and see what happens if we made the code parallel or concurrent:
+Executing the above for loop took **~30** seconds, with each call to the `fib()` function taking 0.5 seconds on average. Lets take this as the baseline and see what happens if we made the code parallel or concurrent:
 
 ```
 ➔ python fib.py
@@ -45,11 +45,13 @@ Time for asynchronous fib(): 64.95514941215515 seconds
 Time for parallel(threads) fib(): 32.95688080787659 seconds
 Time for parallel(processes) fib(): 18.218430519104004 seconds
 ```
-code used to produce this output can be found here -
+{{% center %}}{{% text s="0.7" color="#808080" %}}
+*code used to produce this output can be found [here]()*
+{{% /text %}}{{% /center %}}
 
 _Huh ?_
 
-As some of you may have guessed, and others might be surprised to see, implementing threads or coroutines to speed up the computation has no effect. It even *takes more time* than the original in case of xyz. Only processes seems to offer marginal advantage. This example may make it look like there's no advantage in using coroutines or threads, but I intentionally chose this example first to show that not everything gets magically sped up if implemented using parallel/concurrent code.
+As some of you may have guessed, and others might be surprised to see, implementing threads or coroutines to speed up the computation has no effect. It even *takes more time* than the original in case of coroutines and threads. Only processes seems to offer marginal advantage. This example may make it look like there's no advantage in using coroutines or threads, but I intentionally chose this example first to show that not everything gets magically sped up if implemented using parallel/concurrent code.
 
 To spice things up a little but, lets try downloading 50 webpages instead of calculating `fib(30)` 50 times. What would happen then?
 
@@ -60,9 +62,12 @@ Time for asynchronous fib(): 1.398474931716919 seconds
 Time for parallel(threads) fib(): 1.8830058574676514 seconds
 Time for parallel(processes) fib(): 4.917798280715942 seconds
 ```
-code used to produce this output can be found here -
+{{% center %}}{{% text s="0.7" color="#808080" %}}
+*code used to produce this output can be found [here]()*
+{{% /text %}}{{% /center %}}
 
-In this case, threads and especially coroutines far outperform synchronous code. processes, although still much faster than synchronous, are lagging behind. Here too each individual call to the function still takes x seconds on average, just like the previous example, but the result is vastly different. Why is there such a big difference between the performance of the two examples? How do these things actually work? Lets find out!
+ 
+In this case, threads and especially coroutines far outperform synchronous code. processes, although still much faster than synchronous, are lagging behind. Here too each individual call to the function still takes 0.5 seconds on average, just like the previous example, but the result is vastly different. Why is there such a big difference between the performance of the two examples? How do these things actually work? Lets find out!
 
 
 ## How Parallelism and Concurrency work
@@ -87,7 +92,7 @@ Well... It works and gets the job done, but its *glacially slow*. The main reaso
 
 ### 2. Parallel code
 
-When writing parallel code, two major approaches exist: *multiprocessing* and *multithreading*. But for the purpose of our demonstration we can assume that these two are mostly the same. In a broad sense, **threads** or **processes** are a parts of the main program that can run independent from the main program. At any moment there can be multiple threads or processes running along, or *parallel to*, the main program. You can imagine threads or processes as small mini programs that branch out from your main program, and your operating system runs them alongside your main program, your music player, Google chrome and other stuff running in background. 
+When writing parallel code, two major approaches exist: *multiprocessing* and *multithreading*. But for the purpose of our demonstration we can assume that these two are mostly the same. In a broad sense, **threads** or **processes** are a parts of the main program that can run independent from the main program. At any moment there can be multiple threads or processes running along, or *parallel to*, the main program.
 
 To load our image, lets say we creates a thread for each pixel, and then inside each thread we load and render that pixel. It would execute something like this:
 
@@ -126,24 +131,31 @@ And now for the side by side comparison you all have been waiting for:
 
 Although all the animations above were accurate portrayal of both techniques, they were slightly misleading, as they exist in the ideal world. This is similar to those high school physics problems where we assumed things like air resistance and curvature of earth didn't exist, because it lets us focus on the main principles rather then get bogged down in too many details.
 
-But in a real world, we cant make thousands of threads, one per each task. Each thread requires its own overhead and memory, and extra stuff that the OS needs to handle in order to execute a thread, and no OS can handle that many threads. Even if you can get a large number of threads to run, there would be no use because most commercially available CPU have fewer than 16 cores, and only a dozen or two thread can run truly parallel to each other. [correct?]
+In practice, it depends on a lot of factors how many threads you can create but there is almost no case where spawning 10,000 threads is a good idea. Each threads needs memory ( the default thread stack size in Linux is 8MB), and the number of threads will depend on how much ram you have. Threads also have some overhead, things like creation, destruction and scheduling, which gets more difficult the more threads you have. And if your CPU has only 4 cores, only 4 threads will be running truly parallel at any time. The OS will have to schedule all other threads and switch between them for each core, which will also add a lot of complexity and negate the advantages of having thousands of threads.
 
-In the case of coroutines, they are just functions so we can easily create thousands of them for each task. But this is also not desirable in many situations, like when you try to send a lot of HTTP requests to the same server. Sending a huge amount of concurrent requests to a single server will likely result in either acting as a DDoS attack and harming the server or a ban of your IP from their servers for a arbitrary time period.
+Similarly, coroutines are just functions so we can easily create thousands of them for each task. But this is also not desirable in many situations as coroutines are generally used for tasks that depend on external sources, like downloading a webpage. Sending a huge amount of concurrent requests to a single server will likely result in either acting as a DDoS attack and harming the server or a ban of your IP from their servers for a arbitrary time period. 
 
 ## Which technique should I use then?
 
-- in practice
-- to counter these real world limitations , we use pool [explain]
-- we use pools and locks, semaphores to limit the no of consecutive threads/coroutines
+Generally to overcome these real life limitations people use stuff like [pools](https://en.wikipedia.org/wiki/Thread_pool), [locks](https://en.wikipedia.org/wiki/Lock_(computer_science)), [semaphores](https://en.wikipedia.org/wiki/Semaphore_(programming)) to limit the number of threads and coroutines. To make our animations depict a slightly better representation of the real world, we will limit the maximum number of coroutines and thread we can run to 8. Now lets look at a few different situation to see where each technique shines:
 
-To make our animations depict a slightly better representation of the real world, we will limit the maximum number of coroutines and thread we can run to 8. Now lets look at a few different situation to see where each technique shines:
+If your work involves mostly **I/O bound** tasks, like if our image only required loading, then coroutines are just as fast as thread. Coroutines are even preferred over threads because they don't require any additional overhead, run in a single thread and you can easily create thousands of them.
 
-- If your work involves mostly **I/O bound** tasks, like if our image only required loading, then coroutines are just as fast as thread. Coroutines are even preferred over threads because they don't require any additional overhead, run in a single thread and you can easily create thousands of them.
-		-so thats why in above example ..... 
-- If your work involves mostly **CPU bound** tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine wont give us any advantage.
-- Or maybe if your work is a mix of both **I/O and CPU bound**, then deciding which one is better will depend on the specifics of your program. If you observe the animation below, you will see that coroutines are far more comparable to threads in performance when real world limits are applied as compared to the ideal case animations.
+[anim]
 
-And lastly, most applications work just fine with synchronous code! Unless your code is getting too slow, you don't need to parallelize your code or convert everything to coroutines. Even if it gets slow, you should probably look first into refactoring or profiling your code before trying these techniques. That said, if your problem comes under whats known as [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) problems, then you should definitely look at parallelization first :D
+The code to download 50 webpages from earlier is a example of i/o bound work, and the output shows that coroutines gave the best result.
+
+If your work involves mostly **CPU bound** tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine wont give us any advantage.
+
+[anim]
+
+The fibonacci code from earlier is a example of CPU bound work.
+
+Or maybe if your work is a mix of both **I/O and CPU bound**, then deciding which one is better will depend on the specifics of your program. If you observe the animation below, you will see that coroutines are far more comparable to threads in performance when real world limits are applied as compared to the ideal case animations.
+
+[anim]
+
+And lastly, most applications work just fine with synchronous code! Unless your code is getting too slow, you don't need to parallelize your code or convert everything to coroutines. Even if it gets slow, you should probably look first into refactoring or profiling your code before trying these techniques. That said, if your problem comes under whats known as [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) problems, then you should definitely take a look at parallelization :D
 
 And now just for fun, lets also checkout both techniques on a 16x16 image with max 32 threads/coroutines:
 
@@ -151,15 +163,18 @@ And now just for fun, lets also checkout both techniques on a 16x16 image with m
 
 ## A caveat: multithreading in python
 
-If you have never worked in python or never plan to, this section might not be relevant for you. But I use python as one of my main languages, So I wanted to explain this briefly here.
+If you have never worked in python or never plan to, this section might not be relevant for you. But I use python as one of my main languages, So I wanted to explain this briefly.
 
-- here difference between multiprocessing and multithreading actually matter
+In python, the difference between multiprocessing and multithreading actually matters. Multithreading in python is a tricky business. As almost everyone knows, there exists a thing called **G**lobal **I**nterpreter **L**ock (or GIL) in [CPython](https://github.com/python/cpython), the reference implementation of python. Basically GIL is a global lock that prevents threads from running in more than one core, severely limiting the potential of threads and it exists because Cpython's memory management is not thread-safe.
 
-Multithreading in python is a tricky business. As almost everyone knows, there exists a thing called **G**lobal **I**nterpreter **L**ock (or GIL) in CPython, the reference implementation of python. Basically GIL is a global lock that prevents threads from running in more than one core, severely limiting the potential of threads and it exists because Cpython's memory management is not thread-safe.
+GIL is also the reason why threads performed so poorly in our fibonacci example earlier.
 
-Threads in python still work great for most stuff thats I/O bound, but if GIL is acting as a bottleneck you can still work around it. [one option is] by using the `multiprocessing` library and using separate processes instead of threads, as each process will have its own GIL and can run parallel to other processes [dont mind a little additional overhead]. You can also use other implementations of python that don't have GIL like Jython or IronPython.
+Threads in python still work great for most stuff thats I/O bound, but if GIL is acting as a bottleneck you can still work around it. One option is to use processes instead of threads if you don't mind a little additional overhead caused by them. We can create multiple child processes to the main python process, and each will have its own GIL and can run parallel to other child processes. processes in python can be implemented using 
+the [multiprocessing](https://docs.python.org/2/library/multiprocessing.html) library or the recently added awesome library [concurrent.futures](https://docs.python.org/3/library/concurrent.futures.html).
 
-If you want to learn more about this in detail, I would highly recommend [David Beazley's talk](https://www.youtube.com/watch?v=ph374fJqFPE) on the topic.
+Also there exist other implementations of python that don't have GIL altogether, like [Jython](http://www.jython.org/) or [IronPython](http://ironpython.net/)
+
+If you want to learn more about GIL in detail, I would highly recommend [David Beazley's talk](https://www.youtube.com/watch?v=ph374fJqFPE) on the topic.
 
 ## Conclusion
 

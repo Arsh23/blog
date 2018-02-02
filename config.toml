@@ -1,14 +1,14 @@
 baseURL = "http://www.example.com"
 title = "Minimo"
 # for smart copyright line, leave this blank and check [params.copyright]
-copyright = ""
+copyright = " "
 
 theme = "minimo"
 
 disqusShortname = ""
 googleAnalytics = ""
 
-Paginate = 5
+Paginate = 2
 preserveTaxonomyNames = true
 
 enableRobotsTXT = true # generate robots.txt
@@ -25,8 +25,6 @@ title404 = "Nothing's here!"
 
 [params.assets]
 favicon = "favicon.ico"
-customCSS = ["css/custom.css"]
-customJS = ["js/custom.js"]
 gopher = "" # used in 404 template ( Generator: https://gopherize.me )
 
 [params.copyright]
@@ -39,7 +37,7 @@ suffix = ""
 # date & time format: https://golang.org/pkg/time/
 dateFormat = "2006, Jan 02"
 listDateFormat = "2006, Jan 02"
-hideEntryNavigation = ["page"] # boolean / array of sections
+hideEntryNavigation = true
 recentPostsLength = 4
 hideSocialMenu = false
 showReadingTime = true
@@ -79,12 +77,6 @@ tag = "tags"
 
 [permalinks]
 page = "/:slug/"
-
-[[menu.main]]
-name = "Repo"
-weight = -10
-identifier = "repository"
-url = "https://github.com/MunifTanjim/minimo"
 
 [blackfriday]
 hrefTargetBlank = true

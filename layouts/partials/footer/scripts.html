@@ -1,0 +1,14 @@
+<script src='{{ print "/assets/js/" .Site.Data.assets.main.js | relURL }}'></script>
+
+{{- range .Site.Params.assets.customJS -}}
+  <script src='{{ . | relURL }}'></script>
+{{- end -}}
+
+{{- range .Params.customJS -}}
+  <script src='{{ . | relURL }}'></script>
+{{- end -}}
+
+
+{{ if .Params.includeD3 }}
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+{{ end }}
