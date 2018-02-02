@@ -1,0 +1,16 @@
+<li class='list-item'>
+  <article>
+    <div>&bull;&nbsp;</div>
+
+    <header class='list-item-header'>
+      <h3 class='list-item-title'>
+        <a href='{{ .Permalink | relURL }}' class='list-item-home'>
+          
+          <strong>{{- .Title -}}</strong>
+        </a>
+      </h3>
+      {{ partial "list/readtime" . }}
+    </header>
+
+  </article>
+</li>

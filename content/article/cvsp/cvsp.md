@@ -1,6 +1,6 @@
 ---
 title: "Concurrency VS Parallelism"
-author: Arsh
+date: "2018-02-01"
 draft: true
 includeD3: true
 ---
