@@ -3,6 +3,8 @@ title: "Concurrency VS Parallelism"
 date: "2018-02-01"
 draft: true
 includeD3: true
+customJS: ['js/cvsp/animations.js']
+customCSS: ['css/cvsp/animations.css']
 ---
 
 Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as **parallelism** and **concurrency**, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on whats the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.
@@ -74,7 +76,7 @@ In this case, threads and especially coroutines far outperform synchronous code.
 
 In this section, I will try my best to explain the concepts behind parallelism and concurrency by trying to visualize how both work. For the purpose of this demonstration, imagine that you work at a new upcoming startup. You have been given the task of coming up with a algorithm to load a image when given a list of pixels. To process a single pixel, you have to go through these two steps:
 
-[anim of loading on repeat]
+<div id='single-pixel-loading'></div>
 Firstly, you have to **load** the pixel's data. This can represent loading the pixel from memory, sending a http request for the pixel's data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
 
 [anim of rendering on repeat]
