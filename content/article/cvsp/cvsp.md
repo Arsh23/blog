@@ -75,10 +75,10 @@ In this case, threads and especially coroutines far outperform synchronous code.
 In this section, I will try my best to explain the concepts behind parallelism and concurrency by trying to visualize how both work. For the purpose of this demonstration, imagine that you work at a new upcoming startup. You have been given the task of coming up with a algorithm to load a image when given a list of pixels. To process a single pixel, you have to go through these two steps:
 
 [anim of loading on repeat]
-Firstly, you have to ***load*** the pixel's data. This can represent loading the pixel from memory, sending a http request for the pixel's data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
+Firstly, you have to **load** the pixel's data. This can represent loading the pixel from memory, sending a http request for the pixel's data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
 
 [anim of rendering on repeat]
-Once a pixel is loaded, you have to ***render*** it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete.
+Once a pixel is loaded, you have to **render** it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete.
 
 Lets see what different approaches we can take with a 4x4 sized image:
 
@@ -106,7 +106,7 @@ Another thing to consider is that your language of choice may not have support f
 
 ### 3. Concurrent Code
 
-Once you start to dive into concurrency, you will start to see strange objects named 'futures' or 'promises', and people start talking about things like 'defering' a task or the infamous 'callback hell'. To keep things simple, we are going to use a very basic model of comprising of *coroutines*, which are generally used with the `async` and `await` keywords.
+Once you start to dive into concurrency, you will start to see strange objects named "futures" or "promises", and people start talking about things like "deferring" a task or the infamous "callback hell". To keep things simple, we are going to use a very basic model of comprising of *coroutines*, which are generally used with the `async` and `await` keywords.
 
 A **coroutine** is just like a normal function but with a special ability, that it can suspend its execution at any time and then resume from that point sometime later on. This ability turns out to be really helpful in a lot of situations. For example, lets say you want to download a page, the coroutine that sent the HTTP request for the page can just suspend as soon as it sends the request. Then you can run some other functions while you wait for the page to download, and resume the coroutine once the page is downloaded so it can do its work on the downloaded page.
 
@@ -119,6 +119,7 @@ Its still significantly faster than the synchronous code, but is slower than par
 This is the reason why while writing a concurrent program, all the functions *must* be coroutines. Even if one of the functions is not a coroutine, it can block the main thread while its running and you wont be able to take full advantage of concurrency. 
 
 And as for the same question we asked in multithreading, Why not use coroutines everywhere? Because,
+
 - Not all programs have parts that have to wait for external things to finish, which makes suspending a function useless
 - Most of the major libraries are not built using coroutines, which doesn't help much with the "all functions *must* be coroutines" thing
 
