@@ -19,6 +19,8 @@ pygmentsCodefences = true
 # Missing translations will default to this content language
 defaultContentLanguage = "en"
 
+ignoreFiles = [".swo$"]
+
 [params.info]
 description = "this is a test blog desc"
 title404 = "Nothing's here!"

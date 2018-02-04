@@ -1,155 +1,117 @@
-// size and margin
-// var basewidth = $('.graph').width()
-// var baseheight = $(window).height();
-// var basewidth = 1500;
-// var baseheight = 500;
-//
-// var margin = {
-//             top: 50,
-//             right: 30,
-//             bottom: 30,
-//             left: 30
-//         },
-//     width = basewidth - margin.left - margin.right,
-//     height = baseheight - margin.top - margin.bottom
-//
-// main canvas
-// var svg = d3.select('.graph')
-//     .append('svg')
-//     .attr('width', width + margin.left + margin.right)
-//     .attr('height', height + margin.top + margin.bottom)
-// var canvas = svg.append("g")
-//     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-//
-// var defs = svg.append("defs");
-// defs.append("filter")
-//     .attr("id", "bw-filter")
-//     .append('feColorMatrix')
-//     .attr('type', 'saturate')
-//     .attr('values', '0')
 
-function init_pixel(id, x, y, size, linewidth, image, offsetX, offsetY, imgsize) {
-    var s = size-(2*linewidth)
-    var path = `M ${x+linewidth},${y+linewidth} l${s},0 l0,${s} l${-s},0 Z`
-    var clippath = `M ${x},${y} l${size},0 l0,${size} l${-size},0 Z`
-    var length = 4*size
-    var canvas = d3.select("#" + id + '-canvas')
+function init_pixel(id, d) {
+    var s = d.size-(2*d.linewidth)
+    var path = `M ${d.x+d.linewidth},${d.y+d.linewidth} l${s},0 l0,${s} l${-s},0 Z`
+    var clippath = `M ${d.x},${d.y} l${d.size},0 l0,${d.size} l${-d.size},0 Z`
 
-    var pixel = canvas.append('g')
-        .attr('id', id + '-g')
+    var pixel = d3.select("#" + id + '-canvas').append('g')
 
     pixel.append("clipPath")  
         .attr("id", "clipPath"+id)
         .append("path") 
-        .attr('id', 'clipPathShape'+id)
-        .attr("d", `M ${x},${y}`)
-        .style('fill', 'none')
-        .style('stroke', 'black')
+            .attr('id', 'clipPathShape'+id)
+            .attr("d", '')
     pixel.append("clipPath")  
         .attr("id", "clipPathCrop"+id)
         .append("path")
-        .attr('id', 'imgCropClip'+id)
-        .attr("d", clippath)
-        .style('fill', 'none')
-        .style('stroke', 'black')
+            .attr('id', 'imgCropClip'+id)
+            .attr("d", clippath)
     
     pixel.append('path')
         .attr('id', 'bgrect'+id)
         .attr("d", clippath)
         .style('opacity', 0.70)
-        .style('fill', 'none')
-        .style('stroke', 'black')
 
     pixel.append("svg:image")
         .attr('id', 'bgimage'+id)
-        .attr('x', x+offsetX)
-        .attr('y', y+offsetY)
-        .attr('width', imgsize)
-        .attr('height', imgsize)
-        .attr("xlink:href", image)
-        .style('stroke', 'black')
+        .attr('x', d.x + d.offsetX)
+        .attr('y', d.y + d.offsetY)
+        .attr('width', d.imgsize)
+        .attr('height', d.imgsize)
+        .attr("xlink:href", d.imgpath)
+        .attr("clip-path", 'url(#clipPathCrop' + id + ')')
         .style('opacity', 0.00)
         .style('filter', 'url(#bw-filter)')
-        .attr("clip-path", 'url(#clipPathCrop' + id + ')')
 
     pixel.append("svg:image")
         .attr('id', 'image'+id)
-        .attr('x', x+offsetX)
-        .attr('y', y+offsetY)
-        .attr('width', imgsize)
-        .attr('height', imgsize)
-        .attr("xlink:href", image)
+        .attr('x', d.x + d.offsetX)
+        .attr('y', d.y + d.offsetY)
+        .attr('width', d.imgsize)
+        .attr('height', d.imgsize)
+        .attr("xlink:href", d.imgpath)
         .attr("clip-path", 'url(#clipPath' + id + ')')
 
     pixel.append("path")     
-        .style("stroke", "#2d2d2d")
-        .style('stroke-width', linewidth*2)
-        .style("fill", "none")
         .attr('id', 'path'+id)
         .attr('d', path)
         .attr('stroke-linejoin', 'round')
         .attr('stroke-linecap', 'round')
-        .attr('stroke-dasharray', length + ' ' + length)
-        .attr('stroke-dashoffset', length)
+        .attr('stroke-dasharray', 4*d.size + ' ' + 4*d.size)
+        .attr('stroke-dashoffset', 4*d.size)
+        .style('stroke-width', d.linewidth*2)
+
+    pixel.selectAll('path')
+        .style("fill", "none")
+        .style("stroke", "#2d2d2d")
 }
 
-function reset_pixel(id) {
-    var canvas = d3.select("#" + id + '-canvas')
-    canvas.select('#path'+id)
-        .attr('stroke-dashoffset', 0)
-        .style('opacity', 0)
-    canvas.select('#bgimage'+id)
-        .style('opacity', 0.7)
-    canvas.select('#bgrect'+id)
-        .style('opacity', 0)
-    canvas.select('#clipPathShape'+id)
-        .attr('d', clip)
+function reset_pixel(id, d, delay, level) {
+    if(level == 'render') {
+        d3.select('#clipPathShape'+id)
+            .transition().ease(d3.easeLinear).duration(delay)
+                .attr('d', '')
+    } else if(level == 'load') {
+        d3.select('#path'+id)
+            .attr('stroke-dashoffset', 4*d.size)
+            .style('opacity', 1)
+        d3.select('#bgimage'+id)
+            .transition().ease(d3.easeLinear).duration(delay)
+                .style('opacity', 0)
+        d3.select('#bgrect'+id)
+            .transition().ease(d3.easeLinear).duration(delay)
+                .style('opacity', 0.7)
+        d3.select('#clipPathShape'+id)
+            .transition().ease(d3.easeLinear).duration(delay)
+                .attr('d', '')
+    }
 }
 
-function load_pixel(id, delay, d2, new_x, new_y, size, render_queue, sync, callback) {
-    var canvas = d3.select("#" + id + '-canvas')
-    canvas.select('#path'+id)
-        .transition()
-        .ease(d3.easeLinear)
-        .duration(delay)
-        .attr('stroke-dashoffset', 0)
-        .transition()
-        .duration(0)
-        .style('opacity', 0)
-    canvas.select('#bgimage'+id)
-        .transition()
-        .duration(delay)
-        .ease(d3.easeLinear)
-        .style('opacity', 0.7)
-    canvas.select('#bgrect'+id)
-        .transition()
-        .duration(delay)
-        .ease(d3.easeLinear)
-        .style('opacity', 0)
+function load_pixel(id, d, render_queue, sync, callback) {
+    d3.select('#path'+id)
+        .transition().ease(d3.easeLinear).duration(d.delay1)
+            .attr('stroke-dashoffset', 0)
+        .transition().duration(0)
+            .style('opacity', 0)
+
+    d3.select('#bgimage'+id)
+        .transition().ease(d3.easeLinear).duration(d.delay1)
+            .style('opacity', 0.7)
+
+    d3.select('#bgrect'+id)
+        .transition().ease(d3.easeLinear).duration(d.delay1)
+            .style('opacity', 0)
 
     setTimeout(function() {
-        if(sync == false) { render_queue.defer(render_pixel, id, new_x, new_y, size, d2) }
+        if(sync == false) { render_queue.defer(render_pixel, id, d) }
         if(callback != null) { callback(null, 0) }
-    }, delay)
+    }, d.delay1)
 }
 
-function render_pixel(id, x, y, size, delay, callback) {
-    var split = size/10
-    var midX, midY, clip, init_delay = 0
-
-    for(midY=0; midY<=size-split; midY+=split) {
-        for(midX=split; midX<=size; midX+=split) {
-            var clip = `M ${x},${y} l${size},0 l0,${midY} l${-(size-midX)},0 l0,${split} l${-midX},0 Z`
-            canvas.select('#clipPathShape'+id)
-                .transition()
-                .ease(d3.easeLinear)
-                .duration(0)
-                .delay(init_delay)
-                .attr('d', clip)
-            init_delay += delay 
+function render_pixel(id, d, callback) {
+    var midX, midY, clip, init_delay = 0, split = d.size/10
+    for(midY=0; midY<=d.size-split; midY+=split) {
+        for(midX=split; midX<=d.size; midX+=split) {
+            var clip = `M ${d.x},${d.y} l${d.size},0 l0,${midY} l${-(d.size-midX)},0 l0,${split} l${-midX},0 Z`
+            d3.select('#clipPathShape'+id)
+                .transition().ease(d3.easeLinear).duration(0).delay(init_delay)
+                    .attr('d', clip)
+            init_delay += d.delay2
         }
     }
-    setTimeout(function() { callback(null, 0) }, init_delay-delay)
+    setTimeout(function() { 
+        if(callback != null) { callback(null, 0) }
+    }, init_delay-d.delay2)
 }
 
 
@@ -195,40 +157,73 @@ function animate(id, x, y, load_c, render_c, sync=false) {
 // animate(300, 600, 0, 8, 8, false)
 // animate(300, 600, 0, 0, 0, false)
 
-function init_canvas(div_id) {
-    var basewidth = parseInt(d3.select('#' + div_id).style('width'))
-    var baseheight = basewidth;
+function init_canvas(div_id, basewidth, baseheight) {
+    var margin = {top: 35, right: 35, bottom: 35, left: 35}
+    var width = basewidth - margin.left - margin.right
+    var height = baseheight - margin.top - margin.bottom
 
-    var margin = {top: 35, right: 35, bottom: 35, left: 35},
-        width = basewidth - margin.left - margin.right,
-        height = baseheight - margin.top - margin.bottom
-
-    var svg = d3.select("#" + div_id)
-        .append('svg')
+    var svg = d3.select("#" + div_id).append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-    var canvas = svg.append("g")
-        .attr('id', div_id + '-canvas')
+    var canvas = svg.append("g").attr('id', div_id + '-canvas')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
     var defs = svg.append("defs");
     defs.append("filter")
         .attr("id", "bw-filter")
         .append('feColorMatrix')
-        .attr('type', 'saturate')
-        .attr('values', '0')
-
-    var linewidth = 4
-    linewidth /= 2
-    var imgpath = "/imgs/cvsp/testimage1.jpg"
-
-    init_pixel(div_id, 0, 0, width, linewidth, imgpath, 0, 0, width*4)
-
-    load_pixel(div_id, 4000, 0, 0, 0, width, null, true, null)
+            .attr('type', 'saturate')
+            .attr('values', '0')
+    return width
 }
 
-init_canvas('single-pixel-loading')
+function single_pixel_loading() {
+    var div_id = 'single-pixel-loading'
+    var w = parseInt(d3.select('#' + div_id).style('width'))
+    var width = init_canvas(div_id, w, w)
+    var data = {
+        x: 0, y: 0, offsetX: 0, offsetY: 0,
+        linewidth: 3,
+        delay1: 4000,
+        delay2: 0,
+        size: width,
+        imgsize: 4*width,
+        imgpath: "/imgs/cvsp/testimage1.jpg"
+    }
+
+    init_pixel(div_id, data)
+    var repeat = function() {
+        load_pixel(div_id, data, null, true, null)
+        setTimeout(reset_pixel, 5000, div_id, data, 150, 'load')
+    }
+    repeat()
+    setInterval(repeat, 6000)
+}
+
+function single_pixel_rendering() {
+    var div_id = 'single-pixel-rendering'
+    var w = parseInt(d3.select('#' + div_id).style('width'))
+    var width = init_canvas(div_id, w, w)
+    var data = {
+        x: 0, y: 0, offsetX: 0, offsetY: 0,
+        linewidth: 1,
+        delay1: 0,
+        delay2: 40,
+        size: width,
+        imgsize: 4*width,
+        imgpath: "/imgs/cvsp/testimage1.jpg"
+    }
+
+    init_pixel(div_id, data)
+    load_pixel(div_id, data, null, true, null)
+    var repeat = function() {
+        render_pixel(div_id, data, null)
+        setTimeout(reset_pixel, 5000, div_id, data, 150, 'render')
+    }
+    repeat()
+    setInterval(repeat, 6000)
+}
 
 
-// d3.json("data.json", function(d) {
-// });
+single_pixel_loading()
+single_pixel_rendering()

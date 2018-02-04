@@ -79,7 +79,7 @@ In this section, I will try my best to explain the concepts behind parallelism a
 <div id='single-pixel-loading'></div>
 Firstly, you have to **load** the pixel's data. This can represent loading the pixel from memory, sending a http request for the pixel's data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
 
-[anim of rendering on repeat]
+<div id='single-pixel-rendering'></div>
 Once a pixel is loaded, you have to **render** it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete.
 
 Lets see what different approaches we can take with a 4x4 sized image:
