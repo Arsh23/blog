@@ -196,8 +196,22 @@ function single_pixel_loading() {
         load_pixel(div_id, data, null, true, null)
         setTimeout(reset_pixel, 5000, div_id, data, 150, 'load')
     }
-    repeat()
-    setInterval(repeat, 6000)
+
+    var started = false
+    var waypoint = new Waypoint({
+        element: document.getElementById(div_id),
+        handler: function(direction) {
+            if(!started) {
+                started = true
+                console.log('yay1')
+                repeat()
+                setInterval(repeat, 6000)
+            }
+        },
+        offset: '70%'
+    })
+
+
 }
 
 function single_pixel_rendering() {
@@ -220,10 +234,26 @@ function single_pixel_rendering() {
         render_pixel(div_id, data, null)
         setTimeout(reset_pixel, 5000, div_id, data, 150, 'render')
     }
-    repeat()
-    setInterval(repeat, 6000)
+
+    var started = false
+    var waypoint = new Waypoint({
+        element: document.getElementById(div_id),
+        handler: function(direction) {
+            if(!started) {
+                console.log('yay2')
+                started = true
+                repeat()
+                setInterval(repeat, 6000)
+            }
+        },
+        offset: '70%'
+    })
+
+
 }
 
 
 single_pixel_loading()
 single_pixel_rendering()
+
+

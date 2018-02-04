@@ -3,7 +3,7 @@ title: "Concurrency VS Parallelism"
 date: "2018-02-01"
 draft: true
 includeD3: true
-customJS: ['js/cvsp/animations.js']
+customJS: ['js/cvsp/noframework.waypoints.min.js', 'js/cvsp/animations.js']
 customCSS: ['css/cvsp/animations.css']
 ---
 
