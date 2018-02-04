@@ -1,4 +1,8 @@
 
-#single-pixel-loading, #single-pixel-rendering {
+#single-pixel-load, #single-pixel-render {
     width: 30%;
+}
+
+#sync-ideal {
+    width: 100%;
 }

@@ -1,10 +1,9 @@
 
-function init_pixel(id, d) {
+function init_pixel(id, cid, d) {
     var s = d.size-(2*d.linewidth)
     var path = `M ${d.x+d.linewidth},${d.y+d.linewidth} l${s},0 l0,${s} l${-s},0 Z`
     var clippath = `M ${d.x},${d.y} l${d.size},0 l0,${d.size} l${-d.size},0 Z`
-
-    var pixel = d3.select("#" + id + '-canvas').append('g')
+    var pixel = d3.select("#" + cid + '-canvas').append('g')
 
     pixel.append("clipPath")  
         .attr("id", "clipPath"+id)
@@ -77,23 +76,20 @@ function reset_pixel(id, d, delay, level) {
     }
 }
 
-function load_pixel(id, d, render_queue, sync, callback) {
+function load_pixel(id, d, sync, callback) {
     d3.select('#path'+id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .attr('stroke-dashoffset', 0)
         .transition().duration(0)
             .style('opacity', 0)
-
     d3.select('#bgimage'+id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0.7)
-
     d3.select('#bgrect'+id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0)
-
     setTimeout(function() {
-        if(sync == false) { render_queue.defer(render_pixel, id, d) }
+        if(sync == false) { d.render_queue.defer(render_pixel, id, d) }
         if(callback != null) { callback(null, 0) }
     }, d.delay1)
 }
@@ -115,38 +111,49 @@ function render_pixel(id, d, callback) {
 }
 
 
-function animate(id, x, y, load_c, render_c, sync=false) {
-    var linewidth = 4
-    var size = 60+linewidth
-    linewidth /= 2
-    var imgpath = "testimage5.jpg"
-    var gridsize = 4
-    var gap = 3 
-    var imgsize = size*gridsize
+function animate(div_id, d) {
+    var id = 0
+    var started = false
+    var queue_data = []
 
-    if(load_c == 0) { var load_queue = d3.queue() }
-    else { var load_queue = d3.queue(load_c) }
-    if(render_c == 0) { var render_queue = d3.queue() }
-    else { var render_queue = d3.queue(render_c) }
-
-    for(var i=0; i<gridsize; i++) {
-        for(var j=0; j<gridsize; j++) {
-            id += 1
-            var new_x = x+(j*size + j*gap)
-            var new_y = y+(i*size + i*gap)
-            init_pixel(
-                id, new_x, new_y, size, linewidth, imgpath, -(j*size), -(i*size), imgsize
-            )
-            var d1 = Math.floor(Math.random() * (7000 - 1500 + 1)) + 1500
-            var d2 = Math.floor(Math.random() * (15 - 8 + 1)) + 8
-            load_queue.defer(
-                load_pixel, id, d1, d2, new_x, new_y, size, render_queue, sync
-            )
-            if(sync == true) {
-                load_queue.defer(render_pixel, id, new_x, new_y, size, d2)
+    for(var i=0; i<d.gridsize; i++) {
+        for(var j=0; j<d.gridsize; j++) {
+            var data = {
+                x: d.x+(j*d.size + j*d.gap),
+                y: d.y+(i*d.size + i*d.gap),
+                offsetX: -(j*d.size),
+                offsetY: -(i*d.size),
+                linewidth: d.linewidth,
+                delay1: Math.floor(Math.random() * (7000 - 1500 + 1)) + 1500,
+                delay2: Math.floor(Math.random() * (15 - 8 + 1)) + 8,
+                size: d.size,
+                imgsize: d.size * d.gridsize,
+                render_queue: d.render_queue,
+                imgpath: d.imgpath
             }
+            init_pixel(div_id+id, div_id, data)
+            queue_data.push([id, data])
+            id += 1
         }
     }
+
+    var waypoint = new Waypoint({
+        element: document.getElementById(div_id),
+        handler: function(direction) {
+            if(!started) {
+                started = true
+                for(var x=0; x<queue_data.length; x++) {
+                    var id = queue_data[x][0]
+                    var data = queue_data[x][1]
+                    d.load_queue.defer(load_pixel, div_id+id, data, d.sync)
+                    if(d.sync == true) {
+                        d.load_queue.defer(render_pixel, div_id+id, data)
+                    }
+                }
+            }
+        },
+        offset: '50%'
+    })
 }
 
 // animate(100, 0, 0, 1, 1, true)
@@ -157,8 +164,8 @@ function animate(id, x, y, load_c, render_c, sync=false) {
 // animate(300, 600, 0, 8, 8, false)
 // animate(300, 600, 0, 0, 0, false)
 
-function init_canvas(div_id, basewidth, baseheight) {
-    var margin = {top: 35, right: 35, bottom: 35, left: 35}
+function init_canvas(div_id, basewidth, baseheight, top, left) {
+    var margin = {top: top, right: 0, bottom: top, left: left}
     var width = basewidth - margin.left - margin.right
     var height = baseheight - margin.top - margin.bottom
 
@@ -177,62 +184,26 @@ function init_canvas(div_id, basewidth, baseheight) {
     return width
 }
 
-function single_pixel_loading() {
-    var div_id = 'single-pixel-loading'
+function single_pixel(level) {
+    var div_id = 'single-pixel-'+level
     var w = parseInt(d3.select('#' + div_id).style('width'))
-    var width = init_canvas(div_id, w, w)
+    var width = init_canvas(div_id, w, w, 35, 35)
     var data = {
         x: 0, y: 0, offsetX: 0, offsetY: 0,
         linewidth: 3,
-        delay1: 4000,
-        delay2: 0,
-        size: width,
-        imgsize: 4*width,
-        imgpath: "/imgs/cvsp/testimage1.jpg"
-    }
-
-    init_pixel(div_id, data)
-    var repeat = function() {
-        load_pixel(div_id, data, null, true, null)
-        setTimeout(reset_pixel, 5000, div_id, data, 150, 'load')
-    }
-
-    var started = false
-    var waypoint = new Waypoint({
-        element: document.getElementById(div_id),
-        handler: function(direction) {
-            if(!started) {
-                started = true
-                console.log('yay1')
-                repeat()
-                setInterval(repeat, 6000)
-            }
-        },
-        offset: '70%'
-    })
-
-
-}
-
-function single_pixel_rendering() {
-    var div_id = 'single-pixel-rendering'
-    var w = parseInt(d3.select('#' + div_id).style('width'))
-    var width = init_canvas(div_id, w, w)
-    var data = {
-        x: 0, y: 0, offsetX: 0, offsetY: 0,
-        linewidth: 1,
-        delay1: 0,
+        delay1: (level == 'load') ? 4000 : 0,
         delay2: 40,
         size: width,
         imgsize: 4*width,
         imgpath: "/imgs/cvsp/testimage1.jpg"
     }
 
-    init_pixel(div_id, data)
-    load_pixel(div_id, data, null, true, null)
+    init_pixel(div_id, div_id, data)
+    if(level=='render') { load_pixel(div_id, data, true, null) }
     var repeat = function() {
-        render_pixel(div_id, data, null)
-        setTimeout(reset_pixel, 5000, div_id, data, 150, 'render')
+        if(level == 'load') { load_pixel(div_id, data, true, null) }
+        if(level=='render') { render_pixel(div_id, data, null) }
+        setTimeout(reset_pixel, 5000, div_id, data, 150, level)
     }
 
     var started = false
@@ -240,20 +211,40 @@ function single_pixel_rendering() {
         element: document.getElementById(div_id),
         handler: function(direction) {
             if(!started) {
-                console.log('yay2')
                 started = true
                 repeat()
                 setInterval(repeat, 6000)
             }
         },
-        offset: '70%'
+        offset: '60%'
     })
+}
 
+function sync_ideal() {
+    var div_id = 'sync-ideal'
+
+    var data = {
+        gridsize: 4,
+        gap: 3,
+        sync: true,
+        y: 0,
+        linewidth: 3,
+        load_queue: d3.queue(1),
+        imgpath: "/imgs/cvsp/testimage1.jpg"
+    }
+    data.size = 100+(2*data.linewidth)
+    data.render_queue = data.load_queue
+
+    var w = parseInt(d3.select('#' + div_id).style('width'))
+    var h = (data.size*data.gridsize + data.gap*(data.gridsize-1))
+    var width = init_canvas(div_id, w, h+(2*20), 20, 0)
+    var x = (width - (data.size*data.gridsize + data.gap*(data.gridsize-1)))/2
+    data.x = x
+
+    animate(div_id, data)
 
 }
 
-
-single_pixel_loading()
-single_pixel_rendering()
-
-
+single_pixel('load')
+single_pixel('render')
+sync_ideal()

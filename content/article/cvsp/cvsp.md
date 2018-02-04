@@ -76,20 +76,19 @@ In this case, threads and especially coroutines far outperform synchronous code.
 
 In this section, I will try my best to explain the concepts behind parallelism and concurrency by trying to visualize how both work. For the purpose of this demonstration, imagine that you work at a new upcoming startup. You have been given the task of coming up with a algorithm to load a image when given a list of pixels. To process a single pixel, you have to go through these two steps:
 
-<div id='single-pixel-loading'></div>
+<div id='single-pixel-load'></div>
 Firstly, you have to **load** the pixel's data. This can represent loading the pixel from memory, sending a http request for the pixel's data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
 
-<div id='single-pixel-rendering'></div>
+<div id='single-pixel-render'></div>
 Once a pixel is loaded, you have to **render** it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete.
 
-Lets see what different approaches we can take with a 4x4 sized image:
+The time it takes for both of these to finish will be randomly selected between a range, as runtime for real life tasks is always slightly different each time. Lets see what different approaches we can take with a 4x4 sized image:
 
 ### 1. Synchronous Code
 
 One of the ways we can build this algorithm is by simply using a loop. While there are pixels in the list, extract one, load it, render it and repeat. This algorithm is easy to understand and simple to code, but how well does it perform?
 
-[anim 4x4 sync]
-
+<div id='sync-ideal'></div>
 Well... It works and gets the job done, but its *glacially slow*. The main reason it takes so long to complete is that while its loading a pixel, the code is just sitting there doing nothing. Lets try speeding things up a little bit.
 
 ### 2. Parallel code
