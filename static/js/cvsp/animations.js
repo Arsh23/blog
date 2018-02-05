@@ -1,9 +1,12 @@
+var run_ids  = {}
 
-function init_pixel(id, cid, d) {
+function init_pixel(id, d) {
     var s = d.size-(2*d.linewidth)
     var path = `M ${d.x+d.linewidth},${d.y+d.linewidth} l${s},0 l0,${s} l${-s},0 Z`
     var clippath = `M ${d.x},${d.y} l${d.size},0 l0,${d.size} l${-d.size},0 Z`
-    var pixel = d3.select("#" + cid + '-canvas').append('g')
+    var pixel = d3.select("#" + d.div_id + '-canvas').append('g')
+    run_ids[d.div_id] = {}
+    run_ids[d.div_id].run_id = 0
 
     pixel.append("clipPath")  
         .attr("id", "clipPath"+id)
@@ -89,7 +92,11 @@ function load_pixel(id, d, sync, callback) {
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0)
     setTimeout(function() {
-        if(sync == false) { d.render_queue.defer(render_pixel, id, d) }
+        if(sync == false) { 
+            run_ids[d.div_id].run_id += 1
+            d.run_id = run_ids[d.div_id].run_id
+            d.render_queue.defer(render_pixel, id, d) 
+        }
         if(callback != null) { callback(null, 0) }
     }, d.delay1)
 }
@@ -106,6 +113,12 @@ function render_pixel(id, d, callback) {
         }
     }
     setTimeout(function() { 
+        if(d.run_id == d.gridsize*d.gridsize) {
+            for(var x=0; x<d.gridsize*d.gridsize; x++) {
+                setTimeout(reset_pixel, 2000, d.div_id+x, d, 150, d.reset_level)
+            }
+            setTimeout(run_ids[d.div_id].callback, 3000)
+        }
         if(callback != null) { callback(null, 0) }
     }, init_delay-d.delay2)
 }
@@ -129,27 +142,38 @@ function animate(div_id, d) {
                 size: d.size,
                 imgsize: d.size * d.gridsize,
                 render_queue: d.render_queue,
+                div_id: d.div_id,
+                gridsize: d.gridsize,
+                sync: d.sync,
+                reset_level: d.reset_level,
                 imgpath: d.imgpath
             }
-            init_pixel(div_id+id, div_id, data)
+            init_pixel(div_id+id, data)
             queue_data.push([id, data])
             id += 1
         }
     }
 
+    var repeat = function() {
+        run_ids[d.div_id].run_id = 0
+        for(var x=0; x<queue_data.length; x++) {
+            var id = queue_data[x][0]
+            var data = queue_data[x][1]
+            d.load_queue.defer(load_pixel, div_id+id, data, d.sync)
+            if(d.sync == true) {
+                run_ids[div_id].run_id += 1
+                data.run_id = run_ids[div_id].run_id
+                d.load_queue.defer(render_pixel, div_id+id, data)
+            }
+        }
+    }
+    run_ids[d.div_id].callback = repeat
     var waypoint = new Waypoint({
         element: document.getElementById(div_id),
         handler: function(direction) {
             if(!started) {
                 started = true
-                for(var x=0; x<queue_data.length; x++) {
-                    var id = queue_data[x][0]
-                    var data = queue_data[x][1]
-                    d.load_queue.defer(load_pixel, div_id+id, data, d.sync)
-                    if(d.sync == true) {
-                        d.load_queue.defer(render_pixel, div_id+id, data)
-                    }
-                }
+                repeat()           
             }
         },
         offset: '50%'
@@ -195,10 +219,11 @@ function single_pixel(level) {
         delay2: 40,
         size: width,
         imgsize: 4*width,
+        div_id: div_id,
         imgpath: "/imgs/cvsp/testimage1.jpg"
     }
 
-    init_pixel(div_id, div_id, data)
+    init_pixel(div_id, data)
     if(level=='render') { load_pixel(div_id, data, true, null) }
     var repeat = function() {
         if(level == 'load') { load_pixel(div_id, data, true, null) }
@@ -220,31 +245,38 @@ function single_pixel(level) {
     })
 }
 
-function sync_ideal() {
-    var div_id = 'sync-ideal'
-
+function single_anim(div_id, l, r, sync) {
     var data = {
         gridsize: 4,
         gap: 3,
-        sync: true,
+        sync: sync,
+        reset_level: 'load',
         y: 0,
+        size: 100,
         linewidth: 3,
-        load_queue: d3.queue(1),
+        div_id: div_id,
+        load_queue: (l==0) ? d3.queue() : d3.queue(l),
+        render_queue: (r==0) ? d3.queue() : d3.queue(r),
         imgpath: "/imgs/cvsp/testimage1.jpg"
     }
-    data.size = 100+(2*data.linewidth)
-    data.render_queue = data.load_queue
+    if(sync) { data.render_queue = data.load_queue }
 
     var w = parseInt(d3.select('#' + div_id).style('width'))
+    var length = data.size*data.gridsize + data.gap*(data.gridsize-1)
+    if(length > w-30) { 
+        data.size = ((w-30) - (data.gap*(data.gridsize-1))) / data.gridsize
+    }
+
     var h = (data.size*data.gridsize + data.gap*(data.gridsize-1))
-    var width = init_canvas(div_id, w, h+(2*20), 20, 0)
-    var x = (width - (data.size*data.gridsize + data.gap*(data.gridsize-1)))/2
+    var x = (w - (data.size*data.gridsize + data.gap*(data.gridsize-1)))/2
+    init_canvas(div_id, w, h+(2*20), 20, 0)
     data.x = x
 
     animate(div_id, data)
-
 }
 
 single_pixel('load')
 single_pixel('render')
-sync_ideal()
+single_anim('sync-ideal', 1, 1, true)
+single_anim('parallel-ideal', 0, 0, false)
+single_anim('coroutine-ideal', 0, 1, false)

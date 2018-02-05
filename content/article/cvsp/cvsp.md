@@ -96,9 +96,8 @@ Well... It works and gets the job done, but its *glacially slow*. The main reaso
 When writing parallel code, two major approaches exist: *multiprocessing* and *multithreading*. But for the purpose of our demonstration we can assume that these two are mostly the same. In a broad sense, **threads** or **processes** are a parts of the main program that can run independent from the main program. At any moment there can be multiple threads or processes running along, or *parallel to*, the main program.
 
 To load our image, lets say we creates a thread for each pixel, and then inside each thread we load and render that pixel. It would execute something like this:
-
-[anim 4x4 parallel ideal]
-
+ 
+<div id='parallel-ideal'></div>
 Thats a whole lot faster than our synchronous code! If you notice in the animation, we are not reducing the time it takes to load a pixel. Each thread still takes just as long as before, but by running all the threads at once we can finish the work in significantly less time.
 
 So, threads can make your code run a lot faster, why not use them everywhere? Because to use multithreading efficiently the code should have parts that can work *independently* from each other. As an example, if we take the fibonacci function from earlier and try to put each of its recursive call in a separate thread, it would still be just as slow, as each step depends on the previous step's results and cant run until the previous has finished running, essentially making it run synchronously.
@@ -112,9 +111,8 @@ Once you start to dive into concurrency, you will start to see strange objects n
 A **coroutine** is just like a normal function but with a special ability, that it can suspend its execution at any time and then resume from that point sometime later on. This ability turns out to be really helpful in a lot of situations. For example, lets say you want to download a page, the coroutine that sent the HTTP request for the page can just suspend as soon as it sends the request. Then you can run some other functions while you wait for the page to download, and resume the coroutine once the page is downloaded so it can do its work on the downloaded page.
 
 This time to load our image, we can create a coroutine for each pixel. While a coroutine is waiting for its pixel to load, it can suspend and let other coroutines load or render pixels. When the pixel is loaded, the coroutine can be resumed again and it can render the loaded pixel. Lets see how this performs:
-
-[anim 4x4 coroutine ideal]
-
+ 
+<div id='coroutine-ideal'></div>
 Its still significantly faster than the synchronous code, but is slower than parallel code. The key difference between this and parallelism is that no two coroutines can run at the same time. While loading pixels, each coroutine is suspended and waiting for it's pixel to load, so all the pixels can be loaded at the same time. But while a coroutine is rendering it's pixel, all other coroutines are suspended and only a single pixel can be rendered at a time. This happens because all coroutines essentially run on a single thread, so the suspended coroutines have to wait for the currently active coroutine to either suspend, or finish its work so that they can get a chance to run.
 
 This is the reason why while writing a concurrent program, all the functions *must* be coroutines. Even if one of the functions is not a coroutine, it can block the main thread while its running and you wont be able to take full advantage of concurrency. 
