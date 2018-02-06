@@ -98,7 +98,7 @@ When writing parallel code, two major approaches exist: *multiprocessing* and *m
 To load our image, lets say we creates a thread for each pixel, and then inside each thread we load and render that pixel. It would execute something like this:
  
 <div id='parallel-ideal'></div>
-Thats a whole lot faster than our synchronous code! If you notice in the animation, we are not reducing the time it takes to load a pixel. Each thread still takes just as long as before, but by running all the threads at once we can finish the work in significantly less time.
+Thats a whole lot faster than our synchronous code! If you notice in the animation, we are not reducing the time it takes to load a pixel. Each pixel still takes just as long as before, but by processing all the pixels at once we can finish the work in significantly less time.
 
 So, threads can make your code run a lot faster, why not use them everywhere? Because to use multithreading efficiently the code should have parts that can work *independently* from each other. As an example, if we take the fibonacci function from earlier and try to put each of its recursive call in a separate thread, it would still be just as slow, as each step depends on the previous step's results and cant run until the previous has finished running, essentially making it run synchronously.
 
@@ -122,16 +122,16 @@ And as for the same question we asked in multithreading, Why not use coroutines 
 - Not all programs have parts that have to wait for external things to finish, which makes suspending a function useless
 - Most of the major libraries are not built using coroutines, which doesn't help much with the "all functions *must* be coroutines" thing
 
-And now for the side by side comparison you all have been waiting for:
+And now for the side by side comparison you have been waiting for:
 
-[anim all 3 4x4 ideal]
+anim all 3 4x4 ideal
 
 
 ## Ideal world VS Real world
 
 Although all the animations above were accurate portrayal of both techniques, they were slightly misleading, as they exist in the ideal world. This is similar to those high school physics problems where we assumed things like air resistance and curvature of earth didn't exist, because it lets us focus on the main principles rather then get bogged down in too many details.
 
-In practice, it depends on a lot of factors how many threads you can create but there is almost no case where spawning 10,000 threads is a good idea. Each threads needs memory ( the default thread stack size in Linux is 8MB), and the number of threads will depend on how much ram you have. Threads also have some overhead, things like creation, destruction and scheduling, which gets more difficult the more threads you have. And if your CPU has only 4 cores, only 4 threads will be running truly parallel at any time. The OS will have to schedule all other threads and switch between them for each core, which will also add a lot of complexity and negate the advantages of having thousands of threads.
+In practice, it depends on a lot of factors how many threads you can create but there is almost no case where spawning 10,000 threads is a good idea. Each threads needs memory (the default thread stack size in Linux is 8MB), and the number of threads will depend on how much ram you have. Threads also have some overhead, things like creation, destruction and scheduling, which gets more difficult the more threads you have. And if your CPU has only 4 cores, only 4 threads will be running truly parallel at any time. The OS will have to schedule all other threads and switch between them for each core, which will also add a lot of complexity and negate the advantages of having thousands of threads.
 
 Similarly, coroutines are just functions so we can easily create thousands of them for each task. But this is also not desirable in many situations as coroutines are generally used for tasks that depend on external sources, like downloading a webpage. Sending a huge amount of concurrent requests to a single server will likely result in either acting as a DDoS attack and harming the server or a ban of your IP from their servers for a arbitrary time period. 
 
@@ -141,20 +141,17 @@ Generally to overcome these real life limitations people use stuff like [pools](
 
 If your work involves mostly **I/O bound** tasks, like if our image only required loading, then coroutines are just as fast as thread. Coroutines are even preferred over threads because they don't require any additional overhead, run in a single thread and you can easily create thousands of them.
 
-[anim]
-
+<div id='io-bound'></div>
 The code to download 50 webpages from earlier is a example of i/o bound work, and the output shows that coroutines gave the best result.
 
-If your work involves mostly **CPU bound** tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine wont give us any advantage.
-
-[anim]
-
+If your work involves mostly **CPU bound** tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine wont give us any advantage. 
+ 
+<div id='cpu-bound'></div>
 The fibonacci code from earlier is a example of CPU bound work.
 
 Or maybe if your work is a mix of both **I/O and CPU bound**, then deciding which one is better will depend on the specifics of your program. If you observe the animation below, you will see that coroutines are far more comparable to threads in performance when real world limits are applied as compared to the ideal case animations.
 
-[anim]
-
+<div id='both-bound'></div>
 And lastly, most applications work just fine with synchronous code! Unless your code is getting too slow, you don't need to parallelize your code or convert everything to coroutines. Even if it gets slow, you should probably look first into refactoring or profiling your code before trying these techniques. That said, if your problem comes under whats known as [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) problems, then you should definitely take a look at parallelization :D
 
 And now just for fun, lets also checkout both techniques on a 16x16 image with max 32 threads/coroutines:

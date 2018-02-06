@@ -3,6 +3,6 @@
     width: 30%;
 }
 
-#sync-ideal {
+#sync-ideal, #parallel-ideal, #coroutine-ideal {
     width: 100%;
 }

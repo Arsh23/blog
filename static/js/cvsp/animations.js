@@ -1,51 +1,50 @@
-var run_ids  = {}
+var pixel_counts  = {}
 
-function init_pixel(id, d) {
+function init_pixel(d) {
     var s = d.size-(2*d.linewidth)
     var path = `M ${d.x+d.linewidth},${d.y+d.linewidth} l${s},0 l0,${s} l${-s},0 Z`
     var clippath = `M ${d.x},${d.y} l${d.size},0 l0,${d.size} l${-d.size},0 Z`
-    var pixel = d3.select("#" + d.div_id + '-canvas').append('g')
-    run_ids[d.div_id] = {}
-    run_ids[d.div_id].run_id = 0
+    var pixel = d3.select("#" + d.canvas_id + '-canvas').append('g')
+    
 
     pixel.append("clipPath")  
-        .attr("id", "clipPath"+id)
+        .attr("id", "clipPath"+d.id)
         .append("path") 
-            .attr('id', 'clipPathShape'+id)
+            .attr('id', 'clipPathShape'+d.id)
             .attr("d", '')
     pixel.append("clipPath")  
-        .attr("id", "clipPathCrop"+id)
+        .attr("id", "clipPathCrop"+d.id)
         .append("path")
-            .attr('id', 'imgCropClip'+id)
+            .attr('id', 'imgCropClip'+d.id)
             .attr("d", clippath)
     
     pixel.append('path')
-        .attr('id', 'bgrect'+id)
+        .attr('id', 'bgrect'+d.id)
         .attr("d", clippath)
         .style('opacity', 0.70)
 
     pixel.append("svg:image")
-        .attr('id', 'bgimage'+id)
+        .attr('id', 'bgimage'+d.id)
         .attr('x', d.x + d.offsetX)
         .attr('y', d.y + d.offsetY)
         .attr('width', d.imgsize)
         .attr('height', d.imgsize)
         .attr("xlink:href", d.imgpath)
-        .attr("clip-path", 'url(#clipPathCrop' + id + ')')
+        .attr("clip-path", 'url(#clipPathCrop' + d.id + ')')
         .style('opacity', 0.00)
         .style('filter', 'url(#bw-filter)')
 
     pixel.append("svg:image")
-        .attr('id', 'image'+id)
+        .attr('id', 'image'+d.id)
         .attr('x', d.x + d.offsetX)
         .attr('y', d.y + d.offsetY)
         .attr('width', d.imgsize)
         .attr('height', d.imgsize)
         .attr("xlink:href", d.imgpath)
-        .attr("clip-path", 'url(#clipPath' + id + ')')
+        .attr("clip-path", 'url(#clipPath' + d.id + ')')
 
     pixel.append("path")     
-        .attr('id', 'path'+id)
+        .attr('id', 'path'+d.id)
         .attr('d', path)
         .attr('stroke-linejoin', 'round')
         .attr('stroke-linecap', 'round')
@@ -58,73 +57,76 @@ function init_pixel(id, d) {
         .style("stroke", "#2d2d2d")
 }
 
-function reset_pixel(id, d, delay, level) {
-    if(level == 'render') {
-        d3.select('#clipPathShape'+id)
+function reset_pixel(d, delay) {
+    if(d.reset_level == 'render') {
+        d3.select('#clipPathShape'+ d.id)
             .transition().ease(d3.easeLinear).duration(delay)
                 .attr('d', '')
-    } else if(level == 'load') {
-        d3.select('#path'+id)
+    } else if(d.reset_level == 'load') {
+        d3.select('#path'+d.id)
             .attr('stroke-dashoffset', 4*d.size)
             .style('opacity', 1)
-        d3.select('#bgimage'+id)
+        d3.select('#bgimage'+d.id)
             .transition().ease(d3.easeLinear).duration(delay)
                 .style('opacity', 0)
-        d3.select('#bgrect'+id)
+        d3.select('#bgrect'+d.id)
             .transition().ease(d3.easeLinear).duration(delay)
                 .style('opacity', 0.7)
-        d3.select('#clipPathShape'+id)
+        d3.select('#clipPathShape'+d.id)
             .transition().ease(d3.easeLinear).duration(delay)
                 .attr('d', '')
     }
 }
 
-function load_pixel(id, d, sync, callback) {
-    d3.select('#path'+id)
+function load_pixel(d, callback) {
+    d3.select('#path'+d.id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .attr('stroke-dashoffset', 0)
         .transition().duration(0)
             .style('opacity', 0)
-    d3.select('#bgimage'+id)
+    d3.select('#bgimage'+d.id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0.7)
-    d3.select('#bgrect'+id)
+    d3.select('#bgrect'+d.id)
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0)
     setTimeout(function() {
-        if(sync == false) { 
-            run_ids[d.div_id].run_id += 1
-            d.run_id = run_ids[d.div_id].run_id
-            d.render_queue.defer(render_pixel, id, d) 
+        if(d.sync == false) { 
+            pixel_counts[d.canvas_id].pixels.push(d)
+            pixel_counts[d.canvas_id].last_pixel += 1
+            d.last_pixel = pixel_counts[d.canvas_id].last_pixel
+            d.render_queue.defer(render_pixel, d) 
         }
         if(callback != null) { callback(null, 0) }
     }, d.delay1)
 }
 
-function render_pixel(id, d, callback) {
+function render_pixel(d, callback) {
     var midX, midY, clip, init_delay = 0, split = d.size/10
     for(midY=0; midY<=d.size-split; midY+=split) {
         for(midX=split; midX<=d.size; midX+=split) {
             var clip = `M ${d.x},${d.y} l${d.size},0 l0,${midY} l${-(d.size-midX)},0 l0,${split} l${-midX},0 Z`
-            d3.select('#clipPathShape'+id)
+            d3.select('#clipPathShape'+d.id)
                 .transition().ease(d3.easeLinear).duration(0).delay(init_delay)
                     .attr('d', clip)
             init_delay += d.delay2
         }
     }
     setTimeout(function() { 
-        if(d.run_id == d.gridsize*d.gridsize) {
-            for(var x=0; x<d.gridsize*d.gridsize; x++) {
-                setTimeout(reset_pixel, 2000, d.div_id+x, d, 150, d.reset_level)
+        if(d.last_pixel == d.final_count) {
+            for(var x=0; x<pixel_counts[d.canvas_id].pixels.length; x++) {
+                setTimeout(reset_pixel, 2000, pixel_counts[d.canvas_id].pixels[x], 150)
             }
-            setTimeout(run_ids[d.div_id].callback, 3000)
+            for(var x=0; x<pixel_counts[d.canvas_id].callbacks.length; x++) {
+                setTimeout(pixel_counts[d.canvas_id].callbacks[x], 3000)
+            }
         }
         if(callback != null) { callback(null, 0) }
     }, init_delay-d.delay2)
 }
 
 
-function animate(div_id, d) {
+function animate(d) {
     var id = 0
     var started = false
     var queue_data = []
@@ -142,34 +144,36 @@ function animate(div_id, d) {
                 size: d.size,
                 imgsize: d.size * d.gridsize,
                 render_queue: d.render_queue,
+                id: d.div_id + id,
                 div_id: d.div_id,
+                canvas_id: d.canvas_id,
                 gridsize: d.gridsize,
                 sync: d.sync,
+                final_count: d.final_count,
                 reset_level: d.reset_level,
                 imgpath: d.imgpath
             }
-            init_pixel(div_id+id, data)
-            queue_data.push([id, data])
+            init_pixel(data)
+            queue_data.push(data)
             id += 1
         }
     }
 
     var repeat = function() {
-        run_ids[d.div_id].run_id = 0
+        pixel_counts[d.canvas_id].last_pixel = 0
         for(var x=0; x<queue_data.length; x++) {
-            var id = queue_data[x][0]
-            var data = queue_data[x][1]
-            d.load_queue.defer(load_pixel, div_id+id, data, d.sync)
+            var data = queue_data[x]
+            d.load_queue.defer(load_pixel, data)
             if(d.sync == true) {
-                run_ids[div_id].run_id += 1
-                data.run_id = run_ids[div_id].run_id
-                d.load_queue.defer(render_pixel, div_id+id, data)
+                pixel_counts[d.canvas_id].last_pixel += 1
+                data.last_pixel = pixel_counts[d.canvas_id].last_pixel
+                d.load_queue.defer(render_pixel, data)
             }
         }
     }
-    run_ids[d.div_id].callback = repeat
+    pixel_counts[d.canvas_id].callbacks.push(repeat)
     var waypoint = new Waypoint({
-        element: document.getElementById(div_id),
+        element: document.getElementById(d.canvas_id),
         handler: function(direction) {
             if(!started) {
                 started = true
@@ -180,23 +184,15 @@ function animate(div_id, d) {
     })
 }
 
-// animate(100, 0, 0, 1, 1, true)
-
-// animate(200, 300, 0, 8, 1, false)
-// animate(200, 300, 0, 0, 1, false)
-
-// animate(300, 600, 0, 8, 8, false)
-// animate(300, 600, 0, 0, 0, false)
-
-function init_canvas(div_id, basewidth, baseheight, top, left) {
+function init_canvas(canvas_id, basewidth, baseheight, top, left) {
     var margin = {top: top, right: 0, bottom: top, left: left}
     var width = basewidth - margin.left - margin.right
     var height = baseheight - margin.top - margin.bottom
 
-    var svg = d3.select("#" + div_id).append('svg')
+    var svg = d3.select("#" + canvas_id).append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-    var canvas = svg.append("g").attr('id', div_id + '-canvas')
+    var canvas = svg.append("g").attr('id', canvas_id + '-canvas')
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
     var defs = svg.append("defs");
@@ -205,13 +201,18 @@ function init_canvas(div_id, basewidth, baseheight, top, left) {
         .append('feColorMatrix')
             .attr('type', 'saturate')
             .attr('values', '0')
+
+    pixel_counts[canvas_id] = {}
+    pixel_counts[canvas_id].last_pixel = 0
+    pixel_counts[canvas_id].pixels = []
+    pixel_counts[canvas_id].callbacks = []
     return width
 }
 
 function single_pixel(level) {
-    var div_id = 'single-pixel-'+level
-    var w = parseInt(d3.select('#' + div_id).style('width'))
-    var width = init_canvas(div_id, w, w, 35, 35)
+    var canvas_id = 'single-pixel-'+level
+    var w = parseInt(d3.select('#' + canvas_id).style('width'))
+    var width = init_canvas(canvas_id, w, w, 35, 35)
     var data = {
         x: 0, y: 0, offsetX: 0, offsetY: 0,
         linewidth: 3,
@@ -219,21 +220,25 @@ function single_pixel(level) {
         delay2: 40,
         size: width,
         imgsize: 4*width,
-        div_id: div_id,
+        reset_level: level,
+        id: canvas_id+'1',
+        div_id: canvas_id,
+        canvas_id: canvas_id,
+        final_count: 1,
         imgpath: "/imgs/cvsp/testimage1.jpg"
     }
 
-    init_pixel(div_id, data)
-    if(level=='render') { load_pixel(div_id, data, true, null) }
+    init_pixel(data)
+    if(level=='render') { load_pixel(data, null) }
     var repeat = function() {
-        if(level == 'load') { load_pixel(div_id, data, true, null) }
-        if(level=='render') { render_pixel(div_id, data, null) }
-        setTimeout(reset_pixel, 5000, div_id, data, 150, level)
+        if(level == 'load') { load_pixel(data, null) }
+        if(level=='render') { render_pixel(data, null) }
+        setTimeout(reset_pixel, 5000, data, 150)
     }
 
     var started = false
     var waypoint = new Waypoint({
-        element: document.getElementById(div_id),
+        element: document.getElementById(canvas_id),
         handler: function(direction) {
             if(!started) {
                 started = true
@@ -245,38 +250,86 @@ function single_pixel(level) {
     })
 }
 
-function single_anim(div_id, l, r, sync) {
-    var data = {
+function single_anim(canvas_id, l, r, sync) {
+    var d = {
         gridsize: 4,
         gap: 3,
         sync: sync,
+        do_load: true,
+        do_render: true,
         reset_level: 'load',
         y: 0,
         size: 100,
         linewidth: 3,
-        div_id: div_id,
+        div_id: canvas_id,
+        canvas_id: canvas_id,
         load_queue: (l==0) ? d3.queue() : d3.queue(l),
         render_queue: (r==0) ? d3.queue() : d3.queue(r),
         imgpath: "/imgs/cvsp/testimage1.jpg"
     }
-    if(sync) { data.render_queue = data.load_queue }
+    d.final_count = d.gridsize*d.gridsize
+    if(sync) { d.render_queue = d.load_queue }
 
-    var w = parseInt(d3.select('#' + div_id).style('width'))
-    var length = data.size*data.gridsize + data.gap*(data.gridsize-1)
+    var w = parseInt(d3.select('#' + canvas_id).style('width'))
+    var length = d.size*d.gridsize + d.gap*(d.gridsize-1)
     if(length > w-30) { 
-        data.size = ((w-30) - (data.gap*(data.gridsize-1))) / data.gridsize
+        d.size = ((w-30) - (d.gap*(d.gridsize-1))) / d.gridsize
+        d.size -= d.size % 10
     }
 
-    var h = (data.size*data.gridsize + data.gap*(data.gridsize-1))
-    var x = (w - (data.size*data.gridsize + data.gap*(data.gridsize-1)))/2
-    init_canvas(div_id, w, h+(2*20), 20, 0)
-    data.x = x
+    var h = (d.size*d.gridsize + d.gap*(d.gridsize-1))
+    var x = (w - (d.size*d.gridsize + d.gap*(d.gridsize-1)))/2
+    init_canvas(canvas_id, w, h+(2*20), 20, 0)
+    d.x = x
 
-    animate(div_id, data)
+    animate(d)
 }
 
-single_pixel('load')
-single_pixel('render')
-single_anim('sync-ideal', 1, 1, true)
-single_anim('parallel-ideal', 0, 0, false)
-single_anim('coroutine-ideal', 0, 1, false)
+function double_anim(canvas_id, l, r) {
+    var d = {
+        gridsize: 4,
+        gap: 3,
+        sync: false,
+        do_load: true,
+        do_render: true,
+        reset_level: 'load',
+        y: 0,
+        size: 100,
+        linewidth: 3,
+        canvas_id: canvas_id,
+        // load_queue: d3.queue(l),
+        // render_queue: (r==0) ? d3.queue() : d3.queue(r),
+        imgpath: "/imgs/cvsp/testimage2.jpg"
+    }
+    d.final_count = 2*d.gridsize*d.gridsize
+
+    var w = parseInt(d3.select('#' + canvas_id).style('width'))
+    var length = 2*(d.size*d.gridsize + d.gap*(d.gridsize-1))
+    if(length > w-45) { 
+        d.size = ((w-45) - 2*(d.gap*(d.gridsize-1))) / (2*d.gridsize)
+        d.size -= d.size % 10
+    }
+
+    var h = (d.size*d.gridsize + d.gap*(d.gridsize-1))
+    init_canvas(canvas_id, w, h+(2*20), 20, 0)
+
+    var d1 = Object.assign({}, d); 
+    d1.x = (w - 2*(d.size*d.gridsize + d.gap*(d.gridsize-1)))/3
+    d1.load_queue = d3.queue(l)
+    d1.render_queue = d3.queue(1)
+    d1.div_id = canvas_id + '-left'
+    animate(d1)
+
+    d.x = d.size*d.gridsize + d.gap*(d.gridsize-1) + (2*d1.x)
+    d.load_queue = d3.queue(l)
+    d.render_queue = d3.queue(r)
+    d.div_id = canvas_id + '-right'
+    animate(d)
+}
+
+// single_pixel('load')
+// single_pixel('render')
+// single_anim('sync-ideal', 1, 1, true)
+// single_anim('parallel-ideal', 0, 0, false)
+// single_anim('coroutine-ideal', 0, 1, false)
+double_anim('io-bound', 8, 8)
