@@ -91,11 +91,22 @@ function load_pixel(d, callback) {
         .transition().ease(d3.easeLinear).duration(d.delay1)
             .style('opacity', 0)
     setTimeout(function() {
-        if(d.sync == false) { 
+        if(d.do_load && !d.do_render) {
+            // running only load anim
             pixel_counts[d.canvas_id].pixels.push(d)
             pixel_counts[d.canvas_id].last_pixel += 1
             d.last_pixel = pixel_counts[d.canvas_id].last_pixel
-            d.render_queue.defer(render_pixel, d) 
+            if(d.last_pixel == d.final_count) {
+                for(var x=0; x<pixel_counts[d.canvas_id].pixels.length; x++) {
+                    setTimeout(reset_pixel, 2000, pixel_counts[d.canvas_id].pixels[x], 150)
+                }
+                for(var x=0; x<pixel_counts[d.canvas_id].callbacks.length; x++) {
+                    setTimeout(pixel_counts[d.canvas_id].callbacks[x], 3000)
+                }
+            } 
+        }
+        if(d.sync == false && d.do_render) { 
+            d.render_queue.defer(render_pixel, d)
         }
         if(callback != null) { callback(null, 0) }
     }, d.delay1)
@@ -113,6 +124,11 @@ function render_pixel(d, callback) {
         }
     }
     setTimeout(function() { 
+        if(d.do_render) {
+            pixel_counts[d.canvas_id].pixels.push(d)
+            pixel_counts[d.canvas_id].last_pixel += 1
+            d.last_pixel = pixel_counts[d.canvas_id].last_pixel
+        }
         if(d.last_pixel == d.final_count) {
             for(var x=0; x<pixel_counts[d.canvas_id].pixels.length; x++) {
                 setTimeout(reset_pixel, 2000, pixel_counts[d.canvas_id].pixels[x], 150)
@@ -151,23 +167,29 @@ function animate(d) {
                 sync: d.sync,
                 final_count: d.final_count,
                 reset_level: d.reset_level,
-                imgpath: d.imgpath
+                imgpath: d.imgpath,
+                do_load: d.do_load,
+                do_render: d.do_render
             }
             init_pixel(data)
+            if(!d.do_load) {
+                data.delay1 = 0
+                d.load_queue.defer(load_pixel, data) 
+            } 
             queue_data.push(data)
             id += 1
         }
     }
+    
 
     var repeat = function() {
+        console.log('repeat!')
         pixel_counts[d.canvas_id].last_pixel = 0
         for(var x=0; x<queue_data.length; x++) {
             var data = queue_data[x]
-            d.load_queue.defer(load_pixel, data)
+            if(d.do_load) { d.load_queue.defer(load_pixel, data) }
             if(d.sync == true) {
-                pixel_counts[d.canvas_id].last_pixel += 1
-                data.last_pixel = pixel_counts[d.canvas_id].last_pixel
-                d.load_queue.defer(render_pixel, data)
+                d.render_queue.defer(render_pixel, data)
             }
         }
     }
@@ -285,20 +307,18 @@ function single_anim(canvas_id, l, r, sync) {
     animate(d)
 }
 
-function double_anim(canvas_id, l, r) {
+function double_anim(canvas_id, q, sync, do_load, do_render, reset_level) {
     var d = {
         gridsize: 4,
         gap: 3,
-        sync: false,
-        do_load: true,
-        do_render: true,
-        reset_level: 'load',
+        sync: sync,
+        do_load: do_load,
+        do_render: do_render,
+        reset_level: reset_level,
         y: 0,
         size: 100,
         linewidth: 3,
         canvas_id: canvas_id,
-        // load_queue: d3.queue(l),
-        // render_queue: (r==0) ? d3.queue() : d3.queue(r),
         imgpath: "/imgs/cvsp/testimage2.jpg"
     }
     d.final_count = 2*d.gridsize*d.gridsize
@@ -315,21 +335,76 @@ function double_anim(canvas_id, l, r) {
 
     var d1 = Object.assign({}, d); 
     d1.x = (w - 2*(d.size*d.gridsize + d.gap*(d.gridsize-1)))/3
-    d1.load_queue = d3.queue(l)
+    d1.load_queue = d3.queue(q)
     d1.render_queue = d3.queue(1)
     d1.div_id = canvas_id + '-left'
     animate(d1)
 
     d.x = d.size*d.gridsize + d.gap*(d.gridsize-1) + (2*d1.x)
-    d.load_queue = d3.queue(l)
-    d.render_queue = d3.queue(r)
+    d.load_queue = d3.queue(q)
+    d.render_queue = d3.queue(q)
     d.div_id = canvas_id + '-right'
     animate(d)
 }
 
-// single_pixel('load')
-// single_pixel('render')
-// single_anim('sync-ideal', 1, 1, true)
-// single_anim('parallel-ideal', 0, 0, false)
-// single_anim('coroutine-ideal', 0, 1, false)
-double_anim('io-bound', 8, 8)
+function all_anim(canvas_id, q, gridsize, linewidth, img) {
+    var d = {
+        gridsize: gridsize,
+        gap: 3,
+        // sync: false,
+        do_load: true,
+        do_render: true,
+        reset_level: 'load',
+        y: 0,
+        size: 100,
+        linewidth: linewidth,
+        canvas_id: canvas_id,
+        imgpath: img
+    }
+    d.final_count = 3*d.gridsize*d.gridsize
+
+    var w = parseInt(d3.select('#' + canvas_id).style('width'))
+    var length = 3*(d.size*d.gridsize + d.gap*(d.gridsize-1))
+    if(length > w-20) { 
+        d.size = ((w-20) - 3*(d.gap*(d.gridsize-1))) / (3*d.gridsize)
+        d.size -= d.size % 10
+    }
+
+    var h = (d.size*d.gridsize + d.gap*(d.gridsize-1))
+    init_canvas(canvas_id, w, h+(2*10), 10, 0)
+
+    var d1 = Object.assign({}, d); 
+    d1.x = (w - 3*(d.size*d.gridsize + d.gap*(d.gridsize-1)))/4
+    d1.sync = true, 
+    d1.load_queue = d3.queue(1)
+    d1.render_queue = d1.load_queue
+    d1.div_id = canvas_id + '-left'
+    animate(d1)
+
+    var d2 = Object.assign({}, d); 
+    d2.x = d.size*d.gridsize + d.gap*(d.gridsize-1) + (2*d1.x)
+    d2.sync = false, 
+    d2.load_queue = (q==0) ? d3.queue() : d3.queue(q)
+    d2.render_queue = d3.queue(1)
+    d2.div_id = canvas_id + '-middle'
+    animate(d2)
+
+    d.x = 2*(d.size*d.gridsize + d.gap*(d.gridsize-1)) + (3*d1.x)
+    d.sync = false, 
+    d.load_queue = (q==0) ? d3.queue() : d3.queue(q)
+    d.render_queue = (q==0) ? d3.queue() : d3.queue(q)
+    d.div_id = canvas_id + '-right'
+    animate(d)
+}
+
+
+single_pixel('load')
+single_pixel('render')
+single_anim('sync-ideal', 1, 1, true)
+single_anim('parallel-ideal', 0, 0, false)
+single_anim('coroutine-ideal', 0, 1, false)
+double_anim('io-bound', 8, false, true, false, 'load')
+double_anim('cpu-bound', 8, true, false, true, 'render')
+double_anim('both-bound', 8, false, true, true, 'load')
+all_anim('all-ideal', 0, 4, 2, "/imgs/cvsp/testimage1.jpg")
+// all_anim('all-real', 24, 8, 1, "/imgs/cvsp/testimage2.jpg")

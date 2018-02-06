@@ -123,10 +123,7 @@ And as for the same question we asked in multithreading, Why not use coroutines 
 - Most of the major libraries are not built using coroutines, which doesn't help much with the "all functions *must* be coroutines" thing
 
 And now for the side by side comparison you have been waiting for:
-
-anim all 3 4x4 ideal
-
-
+<div id='all-ideal'></div>
 ## Ideal world VS Real world
 
 Although all the animations above were accurate portrayal of both techniques, they were slightly misleading, as they exist in the ideal world. This is similar to those high school physics problems where we assumed things like air resistance and curvature of earth didn't exist, because it lets us focus on the main principles rather then get bogged down in too many details.
@@ -142,22 +139,22 @@ Generally to overcome these real life limitations people use stuff like [pools](
 If your work involves mostly **I/O bound** tasks, like if our image only required loading, then coroutines are just as fast as thread. Coroutines are even preferred over threads because they don't require any additional overhead, run in a single thread and you can easily create thousands of them.
 
 <div id='io-bound'></div>
-The code to download 50 webpages from earlier is a example of i/o bound work, and the output shows that coroutines gave the best result.
+As visible in the above animation, there is negligible difference between the two. The code to download 50 webpages from earlier is a example of i/o bound work, and the output shows that coroutines gave the best result.
 
 If your work involves mostly **CPU bound** tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine wont give us any advantage. 
  
 <div id='cpu-bound'></div>
-The fibonacci code from earlier is a example of CPU bound work.
+Here it can easily be seen that parallel code is much better. The fibonacci code from earlier is a example of CPU bound work.
 
-Or maybe if your work is a mix of both **I/O and CPU bound**, then deciding which one is better will depend on the specifics of your program. If you observe the animation below, you will see that coroutines are far more comparable to threads in performance when real world limits are applied as compared to the ideal case animations.
+Or maybe if your work is a mix of both **I/O and CPU bound**, then deciding which one is better will depend on the specifics of your program. 
 
 <div id='both-bound'></div>
+If you observe the above animation, you will see that coroutines are far more comparable to threads in performance when real world limits are applied as compared to the ideal case animations.
+
 And lastly, most applications work just fine with synchronous code! Unless your code is getting too slow, you don't need to parallelize your code or convert everything to coroutines. Even if it gets slow, you should probably look first into refactoring or profiling your code before trying these techniques. That said, if your problem comes under whats known as [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel) problems, then you should definitely take a look at parallelization :D
 
 And now just for fun, lets also checkout both techniques on a 16x16 image with max 32 threads/coroutines:
-
-[anim]
-
+<div id='all-real'></div>
 ## A caveat: multithreading in python
 
 If you have never worked in python or never plan to, this section might not be relevant for you. But I use python as one of my main languages, So I wanted to explain this briefly.

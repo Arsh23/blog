@@ -3,6 +3,7 @@
     width: 30%;
 }
 
-#sync-ideal, #parallel-ideal, #coroutine-ideal {
+#sync-ideal, #parallel-ideal, #coroutine-ideal, 
+#io-bound, #cpu-bound, #both-bound, #all-ideal, #all-real {
     width: 100%;
 }
