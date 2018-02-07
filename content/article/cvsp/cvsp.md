@@ -88,7 +88,7 @@ The time it takes for both of these to finish will be randomly selected between 
 
 One of the ways we can build this algorithm is by simply using a loop. While there are pixels in the list, extract one, load it, render it and repeat. This algorithm is easy to understand and simple to code, but how well does it perform?
 
-<div id='sync-ideal'></div>
+<div id='sync-ideal'></div><div id='parallel-ideal'></div>
 Well... It works and gets the job done, but its *glacially slow*. The main reason it takes so long to complete is that while its loading a pixel, the code is just sitting there doing nothing. Lets try speeding things up a little bit.
 
 ### 2. Parallel code
@@ -97,7 +97,7 @@ When writing parallel code, two major approaches exist: *multiprocessing* and *m
 
 To load our image, lets say we creates a thread for each pixel, and then inside each thread we load and render that pixel. It would execute something like this:
  
-<div id='parallel-ideal'></div>
+
 Thats a whole lot faster than our synchronous code! If you notice in the animation, we are not reducing the time it takes to load a pixel. Each pixel still takes just as long as before, but by processing all the pixels at once we can finish the work in significantly less time.
 
 So, threads can make your code run a lot faster, why not use them everywhere? Because to use multithreading efficiently the code should have parts that can work *independently* from each other. As an example, if we take the fibonacci function from earlier and try to put each of its recursive call in a separate thread, it would still be just as slow, as each step depends on the previous step's results and cant run until the previous has finished running, essentially making it run synchronously.
