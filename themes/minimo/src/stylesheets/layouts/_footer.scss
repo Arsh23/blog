@@ -1,0 +1,24 @@
+.footer {
+  .sep-before {
+    &:before {
+      border-bottom-color: $color__accent;
+    }
+  }
+
+  a {
+    font-style: italic;
+  }
+
+  .container > div {
+    width: 100%;
+    margin-top: 1em;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 2em;
+    }
+  }
+}
