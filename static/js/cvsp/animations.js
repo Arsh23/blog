@@ -250,7 +250,7 @@ var default_meta = {
     width_margin: 30,
     height_margin: 40,
     linewidth: 3,
-    imgpath: "blog/imgs/cvsp/testimage1.jpg"
+    imgpath: "../imgs/cvsp/testimage1.jpg"
 }
 
 function start_anim(cid, m, l, r, sync, do_l, do_r, level, checklist) {
@@ -291,7 +291,7 @@ start_anim('all-ideal-left', m2, 1, 1, true, true, true, 'load', ['all-ideal-lef
 start_anim('all-ideal-middle', m2, 0, 1, false, true, true, 'load', ['all-ideal-left', 'all-ideal-middle', 'all-ideal-right'])
 start_anim('all-ideal-right', m2, 0, 0, false, true, true, 'load', ['all-ideal-left', 'all-ideal-middle', 'all-ideal-right'])
 
-default_meta.imgpath = "blog/imgs/cvsp/testimage2.jpg"
+default_meta.imgpath = "../imgs/cvsp/testimage2.jpg"
 start_anim('io-bound-left', default_meta, 8, 1, false, true, false, 'load', ['io-bound-left', 'io-bound-right'])
 start_anim('io-bound-right', default_meta, 8, 1, false, true, false, 'load', ['io-bound-left', 'io-bound-right'])
 
