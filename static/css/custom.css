@@ -1,14 +1,10 @@
 /* @import url('https://fonts.googleapis.com/css?family=Maven+Pro:400,700|Muli:400,700|Nunito+Sans:400,700|Oxygen:400,700|Poppins:400,700|Work+Sans:400,700'); */
 
-@import url('https://fonts.googleapis.com/css?family=Maven+Pro:400,7000');
+@import url('https://fonts.googleapis.com/css?family=Maven+Pro:400,500,700');
 
 @font-face {
     font-family: 'courier prime code';
     src: url('font/Courier Prime Code.ttf')  format('truetype')
-}
-
-#all-posts {
-    padding-left: 10px;
 }
 
 body {
@@ -22,4 +18,9 @@ body {
     font-family: 'Muli', sans-serif;
     font-family: 'Nunito Sans', sans-serif;*/
     font-family: 'Oxygen', sans-serif;
+}
+
+.item-title {
+    font-family: 'Maven Pro', sans-serif;
+    font-weight: 500 !important;
 }

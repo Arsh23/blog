@@ -1,0 +1,17 @@
+homepage = ["all"]
+sidebar = ["about"]
+
+[about]
+title = ""
+description = ""
+logo = "/images/logo.png"
+
+[recentPosts]
+title = ""
+length = 5
+excludeTypes = ["page"]
+
+[taxonomyCloud]
+title = ""
+taxonomy = "tags"
+shuffle = true

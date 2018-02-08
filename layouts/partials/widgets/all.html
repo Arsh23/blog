@@ -1,6 +1,12 @@
 {{ $paginator := .Paginate (where .Data.Pages "Section" "ne" "page") }}
-<section id='all-posts' class='home-section'>
- <div class='list-container'>
+<section class='widget widget-all-posts sep-after'>
+  <!-- <header> -->
+  <!--   <h4 class='title widget-title'> -->
+  <!--     Articles -->
+  <!--   </h4> -->
+  <!-- </header> -->
+
+ <div class='container'>
     <ul class='list'>
       {{ range .Paginator.Pages}}
         {{ .Render "li" }}

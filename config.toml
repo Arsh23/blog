@@ -25,6 +25,11 @@ ignoreFiles = [".swo$"]
 description = "this is a test blog desc"
 title404 = "Nothing's here!"
 
+[params.sidebar]
+enable = false
+sticky = false
+
+
 [params.assets]
 favicon = "favicon.ico"
 customCSS = ["css/custom.css"]

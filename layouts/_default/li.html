@@ -1,16 +1,12 @@
-<li class='list-item'>
-  <article>
-    <div>&bull;&nbsp;</div>
-
-    <header class='list-item-header'>
-      <h3 class='list-item-title'>
-        <a href='{{ .Permalink | relURL }}' class='list-item-home'>
-          
-          <strong>{{- .Title -}}</strong>
-        </a>
-      </h3>
-      <em>{{ partial "list/readtime" . }}</em>
-    </header>
-
-  </article>
+<li class='item'>
+  <div>&bull;&nbsp;</div>
+  <header class='item-header'>
+    <h3 class='item-title'>
+      <a href='{{ .Permalink | relURL }}'>
+        {{- .Title -}}
+        <!-- <strong>{{- .Title -}}</strong> -->
+      </a>
+    </h3>
+    <em>{{ partial "list/readtime" . }}</em>
+  </header>
 </li>
