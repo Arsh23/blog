@@ -1,9 +1,20 @@
 
 #single-pixel-load, #single-pixel-render {
-    width: 30%;
+    width: 29%;
+    display:inline-block;
+    vertical-align:top;
 }
 
-#sync-ideal, #parallel-ideal, #coroutine-ideal, 
-#io-bound, #cpu-bound, #both-bound, #all-ideal, #all-real {
+#sync-ideal, #parallel-ideal, #coroutine-ideal {
     width: 100%;
+}
+
+.double {
+    width: 50%;
+    display:inline-block;
+}
+
+.triple {
+    width: 33.33333%;
+    display:inline-block;
 }

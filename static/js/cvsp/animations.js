@@ -16,7 +16,7 @@ function init_pixel(d, i) {
         .append("path")
         .attr("id", "rendercroppath-"+d.canvas_id+i)
     pixel.append("clipPath")
-        .attr("id", "bgimagecrop"+i)
+        .attr("id", "bgimagecrop-"+d.canvas_id+i)
         .append("path")
         .attr("d", clippath)
 
@@ -32,7 +32,7 @@ function init_pixel(d, i) {
         .attr('width', d.imgsize)
         .attr('height', d.imgsize)
         .attr("xlink:href", d.imgpath)
-        .attr("clip-path", 'url(#bgimagecrop' + i + ')')
+        .attr("clip-path", 'url(#bgimagecrop-'+d.canvas_id + i + ')')
         .style('opacity', (all[d.canvas_id].reset_level == 'render') ? 0.7 : 0)
         .style('filter', 'url(#bw-filter)')
 
@@ -122,10 +122,10 @@ function generate_data(m) {
                 offsetX: -(j*m.size),
                 offsetY: -(i*m.size),
                 linewidth: m.linewidth,
-                delay1: Math.floor(Math.random() * (7000 - 1500 + 1)) + 1500,
-                delay2: (Math.floor(Math.random() * (15 - 8 + 1)) + 8)*100,
+                delay1: (m.d1) ? m.d1 : Math.floor(Math.random() * (7000 - 1500 + 1)) + 1500,
+                delay2: (m.d2) ? m.d2 : (Math.floor(Math.random() * (15 - 8 + 1)) + 8)*100,
                 size: m.size,
-                imgsize: m.size * m.gridsize,
+                imgsize: (m.gridsize == 1) ? m.size*4 : m.size * m.gridsize,
                 canvas_id: m.canvas_id,
                 gridsize: m.gridsize,
                 imgpath: m.imgpath,
@@ -136,16 +136,16 @@ function generate_data(m) {
 }
 
 // initializes the svg element for a div
-function init_canvas(canvas_id, m) {
+function init_canvas(canvas_id, m, reset_level) {
     var w = parseInt(d3.select('#' + canvas_id).style('width'))
     var l = m.size*m.gridsize + m.gap*(m.gridsize-1)
-    if(l > w-30) {
-        m.size = ((w-30) - (m.gap*(m.gridsize-1))) / m.gridsize
+    if(l > w-m.width_margin) {
+        m.size = ((w-m.width_margin) - (m.gap*(m.gridsize-1))) / m.gridsize
         m.size -= m.size % 10
     }
-    var h = (m.size*m.gridsize + m.gap*(m.gridsize-1)) + 40
+    var h = (m.size*m.gridsize + m.gap*(m.gridsize-1)) + m.height_margin 
     m.init_x = (w - (m.size*m.gridsize + m.gap*(m.gridsize-1)))/2
-    m.init_y = 20
+    m.init_y = m.height_margin/2
 
     var svg = d3.select("#" + canvas_id).append('svg')
         .attr('width', w).attr('height', h).attr('id', canvas_id + '-canvas')
@@ -159,6 +159,7 @@ function init_canvas(canvas_id, m) {
     all[canvas_id] = {pixels: {}}
     all[canvas_id].checklist = []
     all[canvas_id].started = false
+    all[canvas_id].reset_level = reset_level
     all[canvas_id].total = m.gridsize*m.gridsize
     m.canvas_id = canvas_id
     var d = generate_data(m)
@@ -214,17 +215,6 @@ function check_pixel(cid, pid) {
             }, d.delay2)
         })
     }
-    if(all[cid].pixels[pid].status == 'stop') {
-        // pixel.selectAll("*").interrupt()
-        pixel.selectAll("*").transition().duration(0)
-        // pixel.transition().duration(0)
-        // all[cid].load_queue.abort()
-        // all[cid].render_queue.abort()
-        for(var x=0; x<all[cid].total; x++) {
-            all[cid].pixels[x].status = 'stop'
-        }
-
-    }
 }
 
 d3.timer(function(time) {
@@ -252,55 +242,65 @@ d3.timer(function(time) {
 
 var default_meta = {
     gridsize: 4,
-    size: 90,
+    size: 100,
+    offset: '50%',
     gap: 4,
     init_x: 0,
     init_y: 0,
+    width_margin: 30,
+    height_margin: 40,
     linewidth: 3,
     imgpath: "/imgs/cvsp/testimage1.jpg"
 }
 
 function start_anim(cid, m, l, r, sync, do_l, do_r, level, checklist) {
-    init_canvas(cid, m)
+    init_canvas(cid, m, level)
     all[cid].start = start(cid, l, r, sync, do_l, do_r, level, checklist)
-    var waypoint1 = new Waypoint({
+    var waypoint = new Waypoint({
         element: document.getElementById(cid),
         handler: function(direction) {
-            if(!all[cid].started && direction == 'down') { 
-                console.log('start down', direction)
-                reset(cid, 0, 0)
+            if(!all[cid].started) { 
                 all[cid].started = true
                 all[cid].start() 
             }
         },
-        offset: '50%'
+        offset: m.offset
     })
-    var waypoint2 = new Waypoint({
-        element: document.getElementById(cid),
-        handler: function(direction) {
-            if(!all[cid].started && direction == 'up') { 
-                console.log('start up', direction)
-                reset(cid, 0, 0)
-                all[cid].started = true
-                all[cid].start() 
-            }
-        },
-        offset: '0%'
-    })
-    var waypoint3 = new Waypoint({
-        element: document.getElementById(cid),
-        handler: function(direction) {
-            if(all[cid].started) { 
-                console.log('stop', direction)
-                all[cid].started = false
-                for(var x=0; x<all[cid].total; x++) {
-                    all[cid].pixels[x].status = 'stop'
-                }
-            }
-        },
-        offset: '-100%'
-    })
-
 }
 
-start_anim('sync-ideal', default_meta, 8, 1, false, true, true, 'load', ['sync-ideal'])
+var m = Object.assign({}, default_meta); 
+m.gridsize = 1
+m.height_margin = 10
+m.widht_margin = 10
+m.offset = '80%'
+m.size = 150 
+m.d1 = 4000
+m.d2 = 4000
+start_anim('single-pixel-load', m, 1, 1, false, true, false, 'load', ['single-pixel-load'])
+start_anim('single-pixel-render', m, 1, 1, false, false, true, 'render', ['single-pixel-render'])
+
+start_anim('sync-ideal', default_meta, 1, 1, true, true, true, 'load', ['sync-ideal'])
+start_anim('parallel-ideal', default_meta, 0, 0, false, true, true, 'load', ['parallel-ideal'])
+start_anim('coroutine-ideal', default_meta, 0, 1, false, true, true, 'load', ['coroutine-ideal'])
+
+var m2 = Object.assign({}, default_meta); 
+m2.linewidth = 2
+m2.gap = 3
+m2.width_margin = 10
+start_anim('all-ideal-left', m2, 1, 1, true, true, true, 'load', ['all-ideal-left', 'all-ideal-middle', 'all-ideal-right'])
+start_anim('all-ideal-middle', m2, 0, 1, false, true, true, 'load', ['all-ideal-left', 'all-ideal-middle', 'all-ideal-right'])
+start_anim('all-ideal-right', m2, 0, 0, false, true, true, 'load', ['all-ideal-left', 'all-ideal-middle', 'all-ideal-right'])
+
+default_meta.imgpath = "/imgs/cvsp/testimage2.jpg"
+start_anim('io-bound-left', default_meta, 8, 1, false, true, false, 'load', ['io-bound-left', 'io-bound-right'])
+start_anim('io-bound-right', default_meta, 8, 1, false, true, false, 'load', ['io-bound-left', 'io-bound-right'])
+
+start_anim('cpu-bound-left', default_meta, 8, 1, false, false, true, 'render', ['cpu-bound-left', 'cpu-bound-right'])
+start_anim('cpu-bound-right', default_meta, 8, 8, false, false, true, 'render', ['cpu-bound-left', 'cpu-bound-right'])
+
+start_anim('both-bound-left', default_meta, 8, 1, false, true, true, 'load', ['both-bound-left', 'both-bound-right'])
+start_anim('both-bound-right', default_meta, 8, 8, false, true, true, 'load', ['both-bound-left', 'both-bound-right'])
+
+
+
+
