@@ -18,7 +18,7 @@ pygmentsCodefences = true
 
 # Missing translations will default to this content language
 defaultContentLanguage = "en"
-
+publishDir = "docs"
 ignoreFiles = [".swo$"]
 
 [params.info]
@@ -31,7 +31,7 @@ sticky = false
 
 
 [params.assets]
-favicon = "favicon.ico"
+favicon = ""
 customCSS = ["css/custom.css"]
 gopher = "" # used in 404 template ( Generator: https://gopherize.me )
 
