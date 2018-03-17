@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Home on Blogname</title>
+    <link>http://blog.prdx.me/</link>
+    <description>Recent content in Home on Blogname</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright> </copyright>
+    <lastBuildDate>Thu, 08 Feb 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://blog.prdx.me/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Concurrency vs Parallelism</title>
+      <link>http://blog.prdx.me/cvsp/</link>
+      <pubDate>Thu, 08 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.prdx.me/cvsp/</guid>
+      <description>Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as parallelism and concurrency, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on what the difference between these two?</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>http://blog.prdx.me/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://blog.prdx.me/about/</guid>
+      <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam condimentum ipsum in sapien tristique, at venenatis enim iaculis. In vel dolor purus. Sed pretium ex ut scelerisque semper. Mauris venenatis, quam vel egestas ullamcorper, diam neque malesuada erat, pretium rhoncus sapien arcu nec lorem. Curabitur neque elit, vestibulum nec purus quis, pretium consequat nisi. Donec et sapien ante. Phasellus diam lorem, lobortis a sapien quis, molestie ultrices dui. Quisque diam erat, mattis non sem ac, auctor aliquet nisi.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='description' content='test desc this is a test'>
+
+<meta property='og:title' content='Concurrency vs Parallelism • Blogname'>
+<meta property='og:description' content='test desc this is a test'>
+<meta property='og:url' content='http://blog.prdx.me/cvsp/'>
+<meta property='og:site_name' content='Blogname'>
+<meta property='og:type' content='article'><meta property='article:section' content='Article'><meta property='article:tag' content='concurrency'><meta property='article:tag' content='parallelism'><meta property='article:published_time' content='2018-02-08T00:00:00Z'/><meta property='article:modified_time' content='2018-02-08T00:00:00Z'/><meta name='twitter:card' content='summary'>
+
+<meta name="generator" content="Hugo 0.35" />
+
+  <title>Concurrency vs Parallelism • Blogname</title>
+  <link rel='canonical' href='http://blog.prdx.me/cvsp/'>
+  
+  
+  <link rel='icon' href='/favicon.ico'>
+<link rel='stylesheet' href='/assets/css/main.88344e3d.css'>
+
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+<link rel='stylesheet' href='/css/custom.css'><link rel='stylesheet' href='/css/cvsp/animations.css'>
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-115930587-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+</head>
+
+
+<body class='page type-article'>
+
+  <div class='site'>
+
+    <a class='screen-reader-text' href='#content'>Skip to Content</a>
+
+    <div class='main'>
+
+      <nav id='main-menu' class='main-menu' aria-label='Main Menu'>
+  <div class='container'>
+    
+    <ul><li class='item'>
+        <a href='/'>Home</a>
+      </li><li class='item'>
+        <a href='/about/'>About</a>
+      </li></ul>
+  </div>
+</nav>
+
+
+      <header id='header' class='header site-header'>
+        <div class='container sep-after'>
+          <div class='header-info'><p class='site-title title'>Blogname</p><p class='desc site-desc'>this is a test blog desc</p>
+          </div>
+        </div>
+      </header>
+
+      <main id='content'>
+
+
+<article lang='en' class='entry'>
+  <header class='header entry-header'>
+  <div class='container sep-after'>
+    <div class='header-info'>
+      <h1 class='title'>Concurrency vs Parallelism</h1>
+      
+    </div>
+    
+<div class='entry-meta'>
+  <span class='posted-on'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+  <line x1="16" y1="2" x2="16" y2="6"/>
+  <line x1="8" y1="2" x2="8" y2="6"/>
+  <line x1="3" y1="10" x2="21" y2="10"/>
+  
+</svg>
+<span class='screen-reader-text'>Posted on </span>
+  <time class='entry-date' datetime='2018-02-08T00:00:00Z'>2018, Feb 08</time>
+</span>
+
+  
+  
+<span class='reading-time'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <circle cx="12" cy="12" r="10"/>
+  <polyline points="12 6 12 12 15 15"/>
+  
+</svg>
+13 mins read
+</span>
+
+
+</div>
+
+
+  </div>
+</header>
+
+  
+  
+
+  <div class='container entry-content'>
+  
+
+<p>Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as <strong>parallelism</strong> and <strong>concurrency</strong>, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.</p>
+
+<p>But before we start thinking about what these actually are, let&rsquo;s start with an example of both in action.</p>
+
+<h2 id="an-example">An example</h2>
+
+<p>Lets start with a pretty standard function <code>fib()</code> to calculate the nth fibonacci number.
+<code>fib()</code> will act as our substitute for some arbitrary complex time consuming computation.
+Here is a simple (and <em>bad</em> ) implementation of <code>fib()</code> written in python:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">fib</span>(x):
+    <span style="color:#66d9ef">if</span> x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> x <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>:
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#66d9ef">return</span> fib(x<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span> fib(x<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>)</code></pre></div>
+<p>Now lets calculate the 30th fibonacci number 50 times, cause why not? :)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">50</span>):
+    fib(<span style="color:#ae81ff">30</span>)</code></pre></div>
+<p>And here&rsquo;s the output:</p>
+
+<pre><code>➔ python fib.py
+Time for synchronous fib(): 28.140856742858887 seconds
+</code></pre>
+
+<p>Executing the above for loop took <strong>~30</strong> seconds, with each call to the <code>fib()</code> function taking 0.5 seconds on average. Let&rsquo;s take this as the baseline and see what happens if we made the code parallel or concurrent:</p>
+
+<pre><code>➔ python fib.py
+Time for synchronous fib(): 27.763985633850098 seconds
+Time for asynchronous fib(): 64.95514941215515 seconds
+Time for parallel(threads) fib(): 32.95688080787659 seconds
+Time for parallel(processes) fib(): 18.218430519104004 seconds
+</code></pre>
+
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.8em;color:#808080;'><p><em>The code used to produce this output can be found <a href="https://github.com/Arsh23/cvsp/blob/master/fib.py" target="_blank">here</a></em></p>
+</div>
+
+</div>
+
+
+<p><em>Huh?</em></p>
+
+<p>As some of you may have guessed, and others might be surprised to see, implementing threads or coroutines to speed up the computation has no effect. It even <em>takes more time</em> than the original in case of coroutines and threads. Only processes seem to offer a marginal advantage. This example may make it look like there&rsquo;s no advantage in using coroutines or threads, but I intentionally chose this example first to show that not everything gets magically sped up if implemented using parallel/concurrent code.</p>
+
+<p>To spice things up a little bit, let&rsquo;s try downloading 50 web pages instead of calculating <code>fib(30)</code> 50 times. What would happen then?</p>
+
+<pre><code>➔ python download.py
+Time for synchronous fib(): 15.663839101791382 seconds
+Time for asynchronous fib(): 1.398474931716919 seconds
+Time for parallel(threads) fib(): 1.8830058574676514 seconds
+Time for parallel(processes) fib(): 4.917798280715942 seconds
+</code></pre>
+
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.8em;color:#808080;'><p><em>The code used to produce this output can be found <a href="https://github.com/Arsh23/cvsp/blob/master/download.py" target="_blank">here</a></em></p>
+</div>
+
+</div>
+
+
+<p>In this case, threads and especially coroutines far outperform synchronous code. processes, although still much faster than synchronous, are lagging behind. Here too each individual call to the function still takes 0.5 seconds on average, just like the previous example, but the result is vastly different. Why is there such a big difference between the performance of the two examples? How do these things actually work? Let&rsquo;s find out!</p>
+
+<h2 id="how-parallelism-and-concurrency-work">How Parallelism and Concurrency work</h2>
+
+<p>In this section, I will try my best to explain the concepts behind parallelism and concurrency by trying to visualize how both work. For the purpose of this demonstration, imagine that you work at a new upcoming startup. You have been given the task of coming up with an algorithm to load an image when given a list of pixels. To process a single pixel, you have to go through these two steps:</p>
+
+<p><div id='single-pixel-load'></div>
+<div style='display: inline-block; width:60%;'>
+  Firstly, you have to <strong>load</strong> the pixel&rsquo;s data. This can represent loading the pixel from memory, sending an HTTP request for the pixel&rsquo;s data or any number of other things. But what this step mainly depicts is something that takes a long time(relative to rest of the code) to process while the code is waiting for it to finish before continuing.
+</div>
+</p>
+
+<p><div id='single-pixel-render'></div>
+<div style='display: inline-block; width:60%;'>
+  Once a pixel is loaded, you have to <strong>render</strong> it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete. Actual pixels don&rsquo;t work like this but this representation will make our demo easier to understand.
+</div>
+</p>
+
+<p>The time it takes for both of these to finish will be randomly selected between a range, as the runtime for real-life tasks is always slightly different each time. Let&rsquo;s see what different approaches we can take with a 4x4 sized image:</p>
+
+<h3 id="1-synchronous-code">1. Synchronous Code</h3>
+
+<p>One of the ways we can build this algorithm is by simply using a loop. While there are pixels in the list, extract one, load it, render it and repeat. This algorithm is easy to understand and simple to code, but how well does it perform?</p>
+
+<p><div id='sync-ideal'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Synchronous loading of image</em></p>
+</div>
+
+</div>
+
+Well&hellip; It works and gets the job done, but it&rsquo;s <em>glacially slow</em>. The main reason it takes so long to complete is that while it&rsquo;s loading a pixel, the code is just sitting there doing nothing. Let&rsquo;s try speeding things up a little bit.</p>
+
+<h3 id="2-parallel-code">2. Parallel code</h3>
+
+<p>When writing parallel code, two major approaches exist, <em>multiprocessing</em> and <em>multithreading</em>. But for the purpose of our demonstration, we can assume that these two are mostly the same. In a broad sense, <strong>threads</strong> or <strong>processes</strong> are parts of the main program that can run independently from the main program. At any moment there can be multiple threads or processes running along, or <em>parallel to</em>, the main program.</p>
+
+<p>To load our image, let&rsquo;s say we create a thread for each pixel, and then inside each thread, we load and render that pixel. It would execute something like this:</p>
+
+<p><div id='parallel-ideal'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Parallel loading of image</em></p>
+</div>
+
+</div>
+
+That&rsquo;s a whole lot faster than our synchronous code! If you notice in the animation, we are not reducing the time it takes to load a pixel. Each pixel still takes just as long as before, but by processing all the pixels at once we can finish the work in significantly less time.</p>
+
+<p>So, threads can make your code run a lot faster, why not use them everywhere? Because to use multithreading efficiently the code should have parts that can work <em>independently</em> from each other. As an example, if we take the Fibonacci function from earlier and try to put each of its recursive call in a separate thread, it would still be just as slow, as each step depends on the previous step&rsquo;s results and cant run until the previous has finished running, essentially making it run synchronously.</p>
+
+<p>Another thing to consider is that your language of choice may not have support for threads, or you might be limited to using only one thread for some reason. In situations like these, the concurrent way of coding really comes in handy:</p>
+
+<h3 id="3-concurrent-code">3. Concurrent Code</h3>
+
+<p>Once you start to dive into concurrency, you will start to see strange objects named &ldquo;futures&rdquo; or &ldquo;promises&rdquo;, and people start talking about things like &ldquo;deferring&rdquo; a task or the infamous &ldquo;callback hell&rdquo;. To keep things simple, we are going to use a very basic model of comprising of <em>coroutines</em>, which are generally used with the <code>async</code> and <code>await</code> keywords.</p>
+
+<p>A <strong>coroutine</strong> is just like a normal function but with a special ability, that it can suspend its execution at any time and then resume from that point sometime later on. This ability turns out to be really helpful in a lot of situations. For example, let&rsquo;s say you want to download a page, the coroutine that sent the HTTP request for the page can just suspend as soon as it sends the request. Then you can run some other functions while you wait for the page to download, and resume the coroutine once the page is downloaded so it can do its work on the downloaded page.</p>
+
+<p>This time to load our image, we can create a coroutine for each pixel. While a coroutine is waiting for its pixel to load, it can suspend and let other coroutines load or render pixels. When the pixel is loaded, the coroutine can be resumed again and it can render the loaded pixel. Let&rsquo;s see how this performs:</p>
+
+<p><div id='coroutine-ideal'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Concurrent loading of image</em></p>
+</div>
+
+</div>
+
+It&rsquo;s still significantly faster than the synchronous code but is slower than parallel code. The key difference between this and parallelism is that no two coroutines can run at the same time. While loading pixels, each coroutine is suspended and waiting for its pixel to load, so all the pixels can be loaded at the same time. But while a coroutine is rendering its pixel, all other coroutines are suspended and only a single pixel can be rendered at a time. This happens because all coroutines essentially run on a single thread, so the suspended coroutines have to wait for the currently active coroutine to either suspend or finish its work so that they can get a chance to run.</p>
+
+<p>This is the reason why while writing a concurrent program, all the functions <em>must</em> be coroutines. Even if one of the functions is not a coroutine, it can block the main thread while its running and you won&rsquo;t be able to take full advantage of concurrency.</p>
+
+<p>And as for the same question we asked in multithreading, Why not use coroutines everywhere? Because:</p>
+
+<ul>
+<li>Not all programs have parts that have to wait for external things to finish, which makes suspending a function useless</li>
+<li>Most of the major libraries are not built using coroutines, which doesn&rsquo;t help much with the &ldquo;all functions <em>must</em> be coroutines&rdquo; thing</li>
+</ul>
+
+<p>And now for the side by side comparison you have been waiting for:
+<div id='all-ideal-left' class='triple'></div><div id='all-ideal-middle' class='triple'></div><div id='all-ideal-right' class='triple'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Synchronous vs Concurrent vs Parallel</em></p>
+</div>
+
+</div>
+</p>
+
+<h2 id="ideal-world-vs-real-world">Ideal world vs Real world</h2>
+
+<p>Although all the animations above were an accurate portrayal of both techniques, they were slightly misleading, as they exist in the ideal world. This is similar to those high school physics problems where we assumed things like air resistance and curvature of the earth didn&rsquo;t exist because it lets us focus on the main principles rather than get bogged down in too many details.</p>
+
+<p>In practice, it depends on a lot of factors how many threads you can create but there is almost no case where spawning 10,000 threads is a good idea. Each thread needs memory (the default thread stack size in Linux is 8MB), and the number of threads will depend on how much ram you have. Threads also have some overhead, things like creation, destruction, and scheduling, which gets more difficult the more threads you have. And if your CPU has only 4 cores, only 4 threads will be running truly parallel at any time. The OS will have to schedule all other threads and switch between them for each core, which will also add a lot of complexity and negate the advantages of having thousands of threads.</p>
+
+<p>Similarly, coroutines are just functions so we can easily create thousands of them for each task. But this is also not desirable in many situations as coroutines are generally used for tasks that depend on external sources, like downloading a webpage. Sending a huge amount of concurrent requests to a single server will likely result in either acting as a DDoS attack and harming the server or a ban of your IP from their servers for an arbitrary time period.</p>
+
+<h2 id="which-technique-should-i-use-then">Which technique should I use then?</h2>
+
+<p>Generally to overcome these real-life limitations people use stuff like <a href="https://en.wikipedia.org/wiki/Thread_pool" target="_blank">pools</a>, <a href="https://en.wikipedia.org/wiki/Lock_(computer_science)" target="_blank">locks</a>, <a href="https://en.wikipedia.org/wiki/Semaphore_(programming)" target="_blank">semaphores</a> to limit the number of threads and coroutines. To make our animations depict a slightly better representation of the real world, we will limit the maximum number of coroutines and thread we can run to 8. Now let&rsquo;s look at a few different situation to see where each technique shines:</p>
+
+<p>If your work involves mostly <strong>I/O bound</strong> tasks, like if our image only required loading, then coroutines are just as fast as threads. Coroutines are even preferred over threads because they don&rsquo;t require any additional overhead, run in a single thread and you can easily create thousands of them.</p>
+
+<p><div id='io-bound-left' class='double'></div><div id='io-bound-right' class='double'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Concurrent vs Parallel: I/O bound with max 8 threads</em></p>
+</div>
+
+</div>
+
+As visible in the above animation, there is negligible difference between the two. The code to download 50 web pages from earlier is an example of i/o bound work, and the output shows that coroutines gave the best result.</p>
+
+<p>If your work involves mostly <strong>CPU bound</strong> tasks, which can be represented by our image only needing rendering, then threads far outperform coroutines. This is obvious as coroutines can only run one at a time and would take the same time as synchronous code. Here, suspending a coroutine won&rsquo;t give us an advantage.</p>
+
+<p><div id='cpu-bound-left' class='double'></div><div id='cpu-bound-right' class='double'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Concurrent vs Parallel: CPU bound with max 8 threads</em></p>
+</div>
+
+</div>
+
+Here it can easily be seen that parallel code is much better. The Fibonacci code from earlier is an example of CPU bound work.</p>
+
+<p>Or maybe if your work is a mix of both <strong>I/O and CPU bound</strong>, then deciding which one is better will depend on the specifics of your program.</p>
+
+<p><div id='both-bound-left' class='double'></div><div id='both-bound-right' class='double'></div>
+<div class='align-center'>
+  <div class='text-shortcode' style='font-size:0.9em;color:#808080;'><p><em>Concurrent vs Parallel: General case with max 8 threads</em></p>
+</div>
+
+</div>
+
+If you observe the above animation, you will see that coroutines are far more comparable to threads in performance when real-world limits are applied as compared to the ideal case animations.</p>
+
+<p>And lastly, most applications work just fine with synchronous code! Unless your code is getting too slow, you don&rsquo;t need to parallelize your code or convert everything to coroutines. Even if it gets slow, you should probably look first into refactoring or profiling your code before trying these techniques. That said, if your problem comes under whats known as <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel" target="_blank">embarrassingly parallel</a> problems, then you should definitely take a look at parallelization :D</p>
+
+<h2 id="a-caveat-multithreading-in-python">A caveat: multithreading in python</h2>
+
+<p>If you have never worked in python or never plan to, this section might not be relevant to you. But I use python as one of my main languages, So I wanted to explain this briefly.</p>
+
+<p>In python, the difference between multiprocessing and multithreading actually matters. Multithreading in python is a tricky business. As almost everyone knows, there exists a thing called <strong>G</strong>lobal <strong>I</strong>nterpreter <strong>L</strong>ock (or GIL) in <a href="https://github.com/python/cpython" target="_blank">CPython</a>, the reference implementation of python. Basically, GIL is a global lock that prevents threads from running in more than one core, severely limiting the potential of threads and it exists because CPython&rsquo;s memory management is not thread-safe.</p>
+
+<p>GIL is also the reason why threads performed so poorly in our Fibonacci example earlier.</p>
+
+<p>Threads in python still work great for most stuff that&rsquo;s I/O bound, but if GIL is acting as a bottleneck you can still work around it. One option is to use processes instead of threads if you don&rsquo;t mind a little additional overhead caused by them. We can create multiple child processes to the main python process, and each will have its own GIL and can run parallel to other child processes. processes in python can be implemented using
+the <a href="https://docs.python.org/2/library/multiprocessing.html" target="_blank">multiprocessing</a> library or the recently added awesome library <a href="https://docs.python.org/3/library/concurrent.futures.html" target="_blank">concurrent.futures</a>.</p>
+
+<p>Also, there exist other implementations of Python that don&rsquo;t have GIL altogether, like <a href="http://www.jython.org/" target="_blank">Jython</a> or <a href="http://ironpython.net/" target="_blank">IronPython</a></p>
+
+<p>If you want to learn more about GIL in detail, I would highly recommend <a href="https://www.youtube.com/watch?v=ph374fJqFPE" target="_blank">David Beazley&rsquo;s talk</a> on the topic.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In conclusion, both parallelism and concurrency are very powerful techniques that can greatly reduce the runtime of your programs, but both have their own very specific areas where they can be used efficiently. Hopefully after reading this article you have a better understanding of how parallelism and concurrency work.</p>
+
+<p>I would highly appreciate any feedback, suggestions or criticism you might have regarding this article. Feel free to message me on twitter at @oddanomaly or @[blogname] or leave a comment below.</p>
+
+<p>The code for all the examples and animations used in this article is open source and can be found here: [github link]</p>
+
+<p>Further reading:</p>
+
+<p>Images used:</p>
+
+</div>
+
+  
+</article>
+
+
+<section class='comments'>
+  <div class='container sep-before'>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "prdx" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
+
+
+      </main>
+
+      <footer id='footer' class='footer'>
+        <div class='container sep-before'>
+          <div class='social-menu'>
+  <nav aria-label='Social Menu'>
+    <ul><li>
+        <a href='mailto:contact@example.com' target='_blank' rel='noopener'>
+          <span class='screen-reader-text'>Contact via Email</span><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+  <polyline points="22,6 12,13 2,6"/>
+  
+</svg>
+</a>
+      </li><li>
+        <a href='https://twitter.com/oddanomaly' target='_blank' rel='noopener'>
+          <span class='screen-reader-text'>Open Twitter account in new tab</span><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+  
+</svg>
+</a>
+      </li><li>
+        <a href='https://github.com/arsh23/blog' target='_blank' rel='noopener'>
+          <span class='screen-reader-text'>Open Github account in new tab</span><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+  
+</svg>
+</a>
+      </li></ul>
+  </nav>
+</div>
+          <div class='copyright'>
+  <p> </p>
+</div>
+
+        </div>
+      </footer>
+
+    </div>
+  </div><script src='/assets/js/main.89545a27.js'></script><script src='/js/cvsp/noframework.waypoints.min.js'></script><script src='/js/cvsp/animations.js'></script></body>
+
+</html>
+
