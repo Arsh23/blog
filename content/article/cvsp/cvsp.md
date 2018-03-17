@@ -1,7 +1,7 @@
 ---
 title: "Concurrency vs Parallelism"
 date: "2018-02-08"
-description: test desc this is a test
+description: An attempt to visually explain the difference between concurrency and parallelism
 url: /cvsp/
 includeD3: true
 customJS: ['js/cvsp/noframework.waypoints.min.js', 'js/cvsp/animations.js']
@@ -9,6 +9,8 @@ customCSS: ['css/cvsp/animations.css']
 footer: false
 categories: ['core cs']
 tags: ['concurrency', 'parallelism']
+images: ["../imgs/cvsp/img.png"]
+authors: ["arsh"]
 ---
 
 Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as **parallelism** and **concurrency**, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.

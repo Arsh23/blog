@@ -1,5 +1,5 @@
 baseURL = "http://blog.prdx.me"
-title = "Blogname"
+title = "Arsh's Blog"
 # for smart copyright line, leave this blank and check [params.copyright]
 copyright = " "
 
@@ -22,7 +22,7 @@ publishDir = "docs"
 ignoreFiles = [".swo$"]
 
 [params.info]
-description = "this is a test blog desc"
+description = "Reveries of a inquisitive mind"
 title404 = "Nothing's here!"
 
 [params.sidebar]
@@ -58,7 +58,7 @@ appID = ""
 pageID = ""
 
 [params.opengraph.twitter]
-page = "" # Twitter page username
+page = "oddanomaly" # Twitter page username
 
 [params.seo]
 # Title Separator: - – — · • * ⋆ | ~ « » < >
@@ -66,7 +66,7 @@ titleSeparator = "•"
 
 [params.social]
 # codepen = ""
-email = "contact@example.com"
+email = "hi@prdx.me"
 # facebook = ""
 github = "arsh23/blog"
 # instagram = ""
