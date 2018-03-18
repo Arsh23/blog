@@ -24,3 +24,68 @@ body {
     font-family: 'Maven Pro', sans-serif;
     font-weight: 500 !important;
 }
+
+/* temp way to change color */
+.header .sep-after:after,
+.sidebar .widget-about.sep-after:after,
+.entry-content a:active,
+.entry-content a:focus,
+.entry-content a:hover,
+.footer .sep-before:before 
+{
+    border-bottom-color:#0DE7A5
+}
+
+
+a:focus,
+button:focus,
+input[type=button]:focus,
+input[type=reset]:focus,
+input[type=submit]:focus,
+input[type=color]:focus,
+input[type=date]:focus,
+input[type=datetime-local]:focus,
+input[type=datetime]:focus,
+input[type=email]:focus,
+input[type=month]:focus,
+input[type=number]:focus,
+input[type=password]:focus,
+input[type=range]:focus,
+input[type=search]:focus,
+input[type=tel]:focus,
+input[type=text]:focus,
+input[type=time]:focus,
+input[type=url]:focus,
+input[type=week]:focus,
+select:focus,
+textarea:focus
+{
+    outline-color:#0DE7A5
+}
+
+button,
+input[type=button],
+input[type=reset],
+input[type=submit]
+{
+    background:#0DE7A5
+}
+
+
+button:active,
+button:focus,
+button:hover,
+input[type=button]:active,
+input[type=button]:focus,
+input[type=button]:hover,
+input[type=reset]:active,
+input[type=reset]:focus,
+input[type=reset]:hover,
+input[type=submit]:active,
+input[type=submit]:focus,
+input[type=submit]:hover
+{
+    color:#0DE7A5
+}
+
+
