@@ -13,7 +13,7 @@ images: ["../imgs/cvsp/img.png"]
 authors: ["arsh"]
 ---
 
-Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as **parallelism** and **concurrency**, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.
+Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as **parallelism** and **concurrency**, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, including me, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.
 
 But before we start thinking about what these actually are, let's start with an example of both in action.
 
@@ -88,7 +88,7 @@ In this section, I will try my best to explain the concepts behind parallelism a
 <div id='single-pixel-render'></div>
 {{% inline-block 60 %}}Once a pixel is loaded, you have to **render** it so that it can be displayed on the screen. This step depicts something that is computationally complex and requires CPU power to complete. Actual pixels don't work like this but this representation will make our demo easier to understand.{{% /inline-block %}}
 
-The time it takes for both of these to finish will be randomly selected between a range, as the runtime for real-life tasks is always slightly different each time. Let's see what different approaches we can take with a 4x4 sized image:
+The time it takes for both of these to finish will be randomly selected between a range, as the runtime for real-life tasks is always slightly different each time. Note that actual pixels in a display don't work like this, this is just a analogy I use to make the explanation a little easier. Let's see what different approaches we can take with a 4x4 sized image:
 
 ### 1. Synchronous Code
 

@@ -22,7 +22,7 @@ publishDir = "docs"
 ignoreFiles = [".swo$"]
 
 [params.info]
-description = "Reveries of a inquisitive mind"
+description = "Reveries of an inquisitive mind"
 title404 = "Nothing's here!"
 
 [params.sidebar]
@@ -31,7 +31,7 @@ sticky = false
 
 
 [params.assets]
-favicon = ""
+favicon = "favicon.png"
 customCSS = ["css/custom.css"]
 gopher = "" # used in 404 template ( Generator: https://gopherize.me )
 

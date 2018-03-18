@@ -20,7 +20,7 @@
   
   <meta property="article:author" content="Arsh">
 <meta name="google-site-verification" content="N_DnqWHUMOQCrWz0I2mjAGEwN3T0GnL7QjaSR8tKpj4" />
-<link rel='icon' href='/favicon.ico'>
+<link rel='icon' href='/favicon.png'>
 <link rel='stylesheet' href='/assets/css/main.88344e3d.css'>
 
 
@@ -58,7 +58,7 @@ ga('send', 'pageview');
 
       <header id='header' class='header site-header'>
         <div class='container sep-after'>
-          <div class='header-info'><p class='site-title title'>Arsh&#39;s Blog</p><p class='desc site-desc'>Reveries of a inquisitive mind</p>
+          <div class='header-info'><p class='site-title title'>Arsh&#39;s Blog</p><p class='desc site-desc'>Reveries of an inquisitive mind</p>
           </div>
         </div>
       </header>
@@ -87,13 +87,6 @@ ga('send', 'pageview');
   <time class='entry-date' datetime='2018-02-08T00:00:00Z'>2018, Feb 08</time>
 </span>
 
-  <span class='byline'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
-  
-  <path d="M21,21V20c0-2.76-4-5-9-5s-9,2.24-9,5v1"/>
-  <path d="M16,6.37A4,4,0,1,1,12.63,3,4,4,0,0,1,16,6.37Z"/>
-  
-</svg>
-<span class='screen-reader-text'> by </span><a href='/authors/arsh'>Arsh</a></span>
   
 <span class='reading-time'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
   
@@ -117,7 +110,7 @@ ga('send', 'pageview');
   <div class='container entry-content'>
   
 
-<p>Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as <strong>parallelism</strong> and <strong>concurrency</strong>, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, me included, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.</p>
+<p>Recently, I have been experimenting with web scraping a lot, and after one too many session of just sitting around waiting for my requests to finish, I finally decided to see if there exists a better way. After some initial Googling I found out about two techniques known as <strong>parallelism</strong> and <strong>concurrency</strong>, and thus began my journey into learning about these two for the next few months. During that time, I noticed that several people, including me, were confused on what the difference between these two? So this article is my attempt at explaining how these two work and what is the difference between them.</p>
 
 <p>But before we start thinking about what these actually are, let&rsquo;s start with an example of both in action.</p>
 
@@ -193,7 +186,7 @@ Time for parallel(processes) fib(): 4.917798280715942 seconds
 </div>
 </p>
 
-<p>The time it takes for both of these to finish will be randomly selected between a range, as the runtime for real-life tasks is always slightly different each time. Let&rsquo;s see what different approaches we can take with a 4x4 sized image:</p>
+<p>The time it takes for both of these to finish will be randomly selected between a range, as the runtime for real-life tasks is always slightly different each time. Note that actual pixels in a display don&rsquo;t work like this, this is just a analogy I use to make the explanation a little easier. Let&rsquo;s see what different approaches we can take with a 4x4 sized image:</p>
 
 <h3 id="1-synchronous-code">1. Synchronous Code</h3>
 
