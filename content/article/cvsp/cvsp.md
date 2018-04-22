@@ -199,13 +199,17 @@ If you want to learn more about GIL in detail, I would highly recommend [David B
 
 In conclusion, both parallelism and concurrency are very powerful techniques that can greatly reduce the runtime of your programs, but both have their own very specific areas where they can be used efficiently. Hopefully after reading this article you have a better understanding of how parallelism and concurrency work.
 
-I would highly appreciate any feedback, suggestions or criticism you might have regarding this article. Feel free to message me on twitter at @oddanomaly or @[blogname] or leave a comment below.
+I would highly appreciate any feedback, suggestions or criticism you might have regarding this article. Feel free to message me on twitter at [@oddanomaly](https://twitter.com/oddanomaly) or leave a comment below.
 
-The code for all the examples and animations used in this article is open source and can be found here: [github link]
+The code for all the examples and animations used in this article is open source and can be found here: [github repo](https://github.com/Arsh23/cvsp)
 
-Further reading:
+**Further reading:**  
+- Rob Pike's [Concurrency Is Not Parallelism](https://www.youtube.com/watch?v=cN_DpYBzKso) video  
+- [Excellent talks by David Beazley](http://www.dabeaz.com/talks.html)  
+- Another great talk by A. Jesse Davis: [video](https://www.youtube.com/watch?v=7sCu4gEjH5I), [blog](https://emptysqua.re/blog/links-for-how-python-coroutines-work/)  
+- Relevant chapters of the book [Fluent Python](http://shop.oreilly.com/product/0636920032519.do)  
+- The [chapter on coroutines](http://aosabook.org/en/500L/a-web-crawler-with-asyncio-coroutines.html) of the [AOSA](http://aosabook.org/en/index.html) book  
 
-
-
-Images used:
-
+**Images used:**  
+https://hangmoon.deviantart.com/art/City-648372768  
+https://alpha.wallhaven.cc/wallpaper/567889
